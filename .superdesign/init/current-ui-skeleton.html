@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>FH-2 Configuration Tool — current UI skeleton</title>
+<link href="https://fonts.googleapis.com/css2?family=PT+Mono&family=PT+Sans&display=swap" rel="stylesheet">
+<style>
+body { font-family: 'PT Sans', serif; font-size: 16px; background: white; color: black; margin: 8px; }
+button { background: #efefef; color: black; }
+select, input { background: white; color: black; }
+tr.a { background-color: #e0e0e0; }
+th { background-color: #c0c0c0; font-size: 80%; }
+td.tc { text-align: center; background-color: #c0c0c0; font-size: 80%; }
+textarea { font-family: 'PT Mono', monospace; font-size: 11px; background: white; color: black; }
+input, select, button { font-family: 'PT Sans', serif; font-size: 11px; }
+button.big { font-size: 120%; }
+div.small { font-size: 80%; }
+table { margin-bottom: 5px; border-collapse: collapse; }
+th, td { padding: 2px 4px; vertical-align: middle; }
+div.rth { writing-mode: vertical-rl; transform: rotate(180deg); padding: 4px; }
+p { margin-block-start: 0; margin-block-end: 0; }
+div.upload { border: 1px dotted; display: inline-block; padding: 4px; margin-right: 8px; }
+.relative_cb { display: inline; margin: 0; }
+</style>
+</head>
+<body>
+<div class="small">At the time of writing this will work only in Google's <a href="http://www.google.com/chrome/">Chrome</a> browser or in the <a href="https://www.opera.com/">Opera</a> browser. Chrome may block SysEx access if you run this from a website, in which case download the html file locally and run it from there.</div>
+<div class="small" id="status">Web MIDI status: OK</div>
+<div class="small">This version is for FH-2 firmware v2.0 and above. <label>Theme: </label><select><option>Light</option><option>Dark</option></select></div>
+<p>
+<button class="big">Send to FH-2</button>
+<label>Send to MIDI output port: </label><select><option>IAC Driver Bus 1</option></select>
+<button>Send Msg</button>
+<br>
+<button class="big">Upload from FH-2</button>
+<label>Listen on MIDI input port: </label><select><option>IAC Driver Bus 1</option></select>
+<button>Request FH-2 Version</button>
+</p>
+<div class="upload"><label>Choose config to load:</label> <input type="file"> <button>Load</button></div>
+<div class="upload"><button>Generate config to save</button> <a href="#">Click to Save Config</a></div>
+<p>
+<textarea rows="5" cols="50" readonly>14:40:04: midi access granted</textarea>
+<textarea rows="5" cols="48">F0 00 21 27 2F 22 F7</textarea>
+<textarea rows="5" cols="48">F0 00 21 27 2F 32 …</textarea>
+</p>
+<p><label>Configuration name:</label> <input type="text"></p>
+<p>
+<label><input type="checkbox"> Show Globals</label>
+<label><input type="checkbox" checked> Show MIDI/CV Converters</label>
+<label><input type="checkbox"> Show Portamento/Transpose/Envelopes</label>
+<label><input type="checkbox"> Show Arpeggiators</label>
+<label><input type="checkbox"> Show Clocks</label>
+<label><input type="checkbox"> Show Triggers</label>
+<label><input type="checkbox"> Show Euclidean Patterns</label>
+<label><input type="checkbox"> Show Sequencers</label>
+<br>
+<label><input type="checkbox" checked> Show FH-2 Output Configurator</label>
+| Show FHX-8CV Expander Output Configurator:
+<label><input type="checkbox">1</label>
+<label><input type="checkbox">2</label>
+<label><input type="checkbox">3</label>
+<label><input type="checkbox">4</label>
+<label><input type="checkbox">5</label>
+<label><input type="checkbox">6</label>
+<label><input type="checkbox">7</label>
+<label><input type="checkbox"> Show Gamepad</label>
+<label><input type="checkbox"> Show HID Keyboard</label>
+<label><input type="checkbox"> Show CV/MIDI</label>
+<label><input type="checkbox"> Show SR Random</label>
+</p>
+
+<table>
+<tr>
+<th><div class="rth">Converter</div></th>
+<th><div class="rth">Enable</div></th>
+<th>MIDI<br>Channel</th>
+<th colspan="2">Note range</th>
+<th>Type</th>
+<th>Base<br>Output</th>
+<th>Base<br>Gate</th>
+<th><div class="rth">CV</div></th>
+<th><div class="rth">Gate</div></th>
+<th><div class="rth">Velocity<br>Gate</div></th>
+<th><div class="rth">Velocity</div></th>
+<th><div class="rth">Release<br>Velocity</div></th>
+<th><div class="rth">Trigger</div></th>
+<th><div class="rth">Envelope</div></th>
+<th><div class="rth">Aftertouch</div></th>
+<th><div class="rth">Random</div></th>
+<th><div class="rth">Y</div></th>
+<th><div class="rth">Gate</div></th>
+<th><div class="rth">Aftertouch</div></th>
+<th><div class="rth">Bend</div></th>
+<th><div class="rth">Gated<br>Aftertouch</div></th>
+<th>Sustain</th>
+<th>Voice<br>allocation</th>
+<th>Prevent<br>stealing</th>
+<th>Voices</th>
+<th>Stride</th>
+<th>Last<br>channel</th>
+<th colspan="2">Bend<br>range</th>
+<th><div class="rth">Mono<br>retrigger</div></th>
+<th><div class="rth">Interrupt<br>gate</div></th>
+<th><div class="rth">Env<br>zero</div></th>
+</tr>
+<tr>
+<td colspan="8"></td>
+<th class="tc" colspan="10">Per voice outputs</th>
+<th class="tc" colspan="3">Paraphonic outputs</th>
+<td colspan="12"></td>
+</tr>
+<tr class="a">
+<th>1</th>
+<td><input type="checkbox"></td>
+<td><select><option>1</option></select></td>
+<td><select><option>0</option></select></td>
+<td><select><option>127</option></select></td>
+<td><select><option>Mono</option><option>Poly</option><option>MPE</option></select></td>
+<td><select><option>1</option></select></td>
+<td><select><option>--</option></select></td>
+<td><input type="checkbox"></td>
+<td><input type="checkbox"></td>
+<td><input type="checkbox"></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><input type="checkbox"></td>
+<td><input type="checkbox"></td>
+<td><input type="checkbox"></td>
+<td><input type="checkbox"></td>
+<td><select><option>--</option></select></td>
+<td><input type="checkbox"></td>
+<td><input type="checkbox"></td>
+<td><select><option>--</option></select></td>
+<td><input type="checkbox"></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><input type="checkbox"></td>
+<td><select><option>1</option></select></td>
+<td><select><option>0</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>2</option></select></td>
+<td><select><option>2</option></select></td>
+<td><input type="checkbox"></td>
+<td><input type="checkbox"></td>
+<td><input type="checkbox"></td>
+</tr>
+</table>
+
+<table>
+<tr><th colspan="4">FH-2</th><th colspan="2">LFO Tempo-based</th><th colspan="13">LFO</th><th colspan="3">FH-2</th></tr>
+<tr>
+<td></td>
+<th>Output Range</th>
+<th>Direct Control</th>
+<th>LFO Speed</th>
+<th>Base</th>
+<th>Multiplier</th>
+<th>LFO Level</th>
+<th>Sine</th>
+<th>Square</th>
+<th>PW</th>
+<th>Triangle</th>
+<th>Saw</th>
+<th>Random</th>
+<th>Noise</th>
+<th>Phase</th>
+<th colspan="3">Reset</th>
+<th>Fade</th>
+<th>Smoothing</th>
+<th colspan="2">Gate Levels</th>
+</tr>
+<tr class="a">
+<th>Output</th><td></td>
+<td class="tc">Channel/CC</td><td class="tc">Channel/CC</td><td class="tc">Channel/CC</td>
+<td class="tc">Channel/CC</td><td class="tc">Channel/CC</td><td class="tc">Channel/CC</td>
+<td class="tc">Channel/CC</td><td class="tc">Channel/CC</td><td class="tc">Channel/CC</td>
+<td class="tc">Channel/CC</td><td class="tc">Channel/CC</td><td class="tc">Channel/CC</td>
+<td class="tc">Channel/CC</td>
+<td class="tc">Type</td><td class="tc">Set 1</td><td class="tc">Set 2</td>
+<td class="tc">Channel/CC</td><td class="tc">Channel/CC</td>
+<th>Low</th><th>High</th>
+</tr>
+<tr class="b">
+<td>1</td>
+<td><select><option>0-10V</option><option>±5V</option><option>0-1V</option><option>0-5V</option><option>0-8V</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>Off</option></select></td>
+<td></td>
+<td></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><input size="5" value="0"></td>
+<td><input size="5" value="16383"></td>
+</tr>
+<tr class="a">
+<td>2</td>
+<td><select><option>0-10V</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><select><option>Off</option></select></td>
+<td></td>
+<td></td>
+<td><select><option>--</option></select></td>
+<td><select><option>--</option></select></td>
+<td><input size="5" value="0"></td>
+<td><input size="5" value="16383"></td>
+</tr>
+</table>
+</body>
+</html>

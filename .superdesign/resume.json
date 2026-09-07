@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "targets": {
+    "/": {
+      "targetKind": "existing-ui",
+      "projectId": "6a3280d0-8808-4fee-9f2b-330bbe9295b4",
+      "baselineDraftId": "a9d03b24-c032-4192-bf65-f2d7cf1ad46e",
+      "activeDraftId": "0dc65fe1-bf81-408c-b409-61f9cd255157",
+      "designSystemPath": ".superdesign/design-system.md",
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/init/theme.md",
+        ".superdesign/init/layouts.md",
+        ".superdesign/init/current-ui-skeleton.html",
+        "FH-2 Configuration Tool.html:9:101",
+        "FH-2 Configuration Tool.html:1346:1406",
+        "FH-2 Configuration Tool.html:1416:1424",
+        "FH-2 Configuration Tool.html:1594:1621",
+        "FH-2 Configuration Tool.html:2485:2513"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "ce8f0a754e2371bf0406b42a304042881b87d78f04fb49f3c0707ba214593704",
+        ".superdesign/init/theme.md": "2b4c23e88cb154da80627598f586cc2ec190790f36f79b7cff10f4719499c473",
+        ".superdesign/init/layouts.md": "db3db0b33467273100e6f2d70b7cab0f1cef561cf026f523c630d982dc0aaee2",
+        ".superdesign/init/current-ui-skeleton.html": "3c82ec2b7aad1df6f9ccf4230f13cb94f6e3fad4d72dda381cf47fef3316f1f5",
+        "FH-2 Configuration Tool.html": "988cf206161345c42ab2ef6ed667d7d8d2fd012348565d63f74bca0864dc8e66"
+      },
+      "components": [],
+      "drafts": {
+        "a9d03b24-c032-4192-bf65-f2d7cf1ad46e": {
+          "title": "Current FH-2 Configuration Tool",
+          "visualDirection": "pixel-perfect original table UI",
+          "currentVersion": 1
+        },
+        "0dc65fe1-bf81-408c-b409-61f9cd255157": {
+          "title": "FH-2 Guided Studio Configuration Tool",
+          "visualDirection": "left nav + help rail + occupancy strip",
+          "parentDraftId": "a9d03b24-c032-4192-bf65-f2d7cf1ad46e",
+          "currentVersion": 4
+        },
+        "248afc1b-6f4c-496f-8b96-cb2080eb6042": {
+          "title": "FH-2 Output-First Configuration Tool",
+          "visualDirection": "8-jack hero with stacked assignment chips",
+          "parentDraftId": "a9d03b24-c032-4192-bf65-f2d7cf1ad46e",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-09-07T09:10:00Z"
+    }
+  }
+}
