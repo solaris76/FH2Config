@@ -1140,7 +1140,661 @@ function showHide( id, show ) {
 }
 </script>
 
-<link rel="stylesheet" href="fh2-studio.css">
+<style>
+:root,
+html[data-theme="dark"] {
+  --page: #101418;
+  --surface: #181e23;
+  --surface2: #21282e;
+  --line: #2c353c;
+  --ink: #e7ecef;
+  --muted: #8b969d;
+  --gold: #d4a017;
+  --cv: #3db8c4;
+  --gate: #62b86b;
+  --warning: #e07a3d;
+  --danger: #d4524a;
+  --zebra: #1c2329;
+  --head: #21282e;
+}
+
+html[data-theme="light"] {
+  --page: #f4f6f7;
+  --surface: #ffffff;
+  --surface2: #eef1f3;
+  --line: #d5dcde;
+  --ink: #1b2328;
+  --muted: #667279;
+  --gold: #b8860b;
+  --cv: #1f8a94;
+  --gate: #3d8a45;
+  --warning: #c45e1c;
+  --danger: #b43b35;
+  --zebra: #e8ecef;
+  --head: #dfe4e8;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--page);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", "PT Sans", sans-serif;
+  font-size: 13px;
+  overflow-x: hidden;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  color: var(--ink);
+}
+
+button, select, input[type="text"], input[type="number"], input[type="file"], textarea {
+  background: var(--page);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+}
+
+button { background: var(--surface2); cursor: pointer; }
+button:hover { border-color: var(--gold); }
+select, input, textarea { color-scheme: dark; }
+html[data-theme="light"] select,
+html[data-theme="light"] input,
+html[data-theme="light"] textarea { color-scheme: light; }
+
+.app {
+  min-height: 100vh;
+  background: var(--page);
+}
+
+.studio-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  padding: 10px 16px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 8px 16px;
+  align-items: end;
+}
+.brand { grid-column: 1; grid-row: 1 / 3; }
+.header-fields { grid-column: 2; grid-row: 1; }
+.header-meta { grid-column: 3; grid-row: 1; }
+.header-row-actions {
+  grid-column: 2 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-meta {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+}
+.header-row-actions #theme {
+  height: 40px;
+  min-width: 10.5rem;
+  padding: 0 10px;
+}
+.header-row-actions > .field-label {
+  margin: 0;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 168px;
+}
+
+.brand img {
+  height: 32px;
+  width: auto;
+  max-width: 168px;
+}
+
+.brand-copy { line-height: 1.2; }
+.brand-copy strong { display: block; font-size: 15px; }
+.brand-copy span { color: var(--muted); font-size: 11px; }
+
+.header-fields {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.header-fields input,
+.header-fields select { height: 40px; width: 100%; padding: 0 10px; }
+
+.header-row-actions a#saveConfig,
+.header-row-actions #chooseConfig {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.midi-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface2);
+  font-size: 11px;
+  color: var(--muted);
+}
+.midi-pill .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.midi-pill.is-ok { border-color: var(--gate); color: var(--gate); }
+.midi-pill.is-ok .dot { background: var(--gate); }
+.midi-pill.is-bad { border-color: var(--danger); color: var(--danger); }
+.midi-pill.is-bad .dot { background: var(--danger); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--ink);
+}
+.btn-ghost { background: transparent; border: 1px solid var(--line); }
+.btn-primary {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #101418;
+}
+.btn-primary:hover { filter: brightness(1.05); }
+.btn img { height: 14px; width: auto; max-width: 88px; }
+
+.header-menu {
+  position: relative;
+}
+.header-menu > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.header-menu > summary::-webkit-details-marker { display: none; }
+.header-menu .menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 80;
+  min-width: 260px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+.header-menu .menu a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 4px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 12px;
+}
+.header-menu .menu a:hover {
+  background: var(--surface2);
+  color: var(--gold);
+}
+
+.studio-layout {
+  display: grid;
+  grid-template-columns: 184px minmax(0, 1fr) 260px;
+  align-items: start;
+}
+
+.studio-nav {
+  position: sticky;
+  top: var(--header-h, 108px);
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  padding: 12px;
+}
+.studio-nav .nav-label {
+  padding: 0 8px 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.studio-nav button {
+  width: 100%;
+  min-height: 40px;
+  margin-bottom: 4px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  text-align: left;
+}
+.studio-nav button.is-on {
+  background: var(--surface2);
+  border-color: var(--gold);
+  color: var(--ink);
+}
+.studio-nav button .count {
+  font-family: "IBM Plex Mono", "PT Mono", monospace;
+  font-size: 11px;
+}
+.studio-nav button.is-on .count { color: var(--gold); }
+
+.studio-main {
+  min-width: 0;
+  background: var(--page);
+}
+
+.occupancy {
+  scroll-margin-top: var(--header-h, 108px);
+  border-bottom: 1px solid var(--line);
+  background: var(--page);
+  padding: 12px 16px;
+}
+
+.occupancy-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.occupancy-head h2 { margin: 0; font-size: 15px; }
+.occupancy-head span { color: var(--muted); font-size: 11px; }
+.occupancy-head label { color: var(--muted); font-size: 11px; }
+.occupancy-bank {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.occupancy-head select { height: 32px; min-width: 248px; }
+.occupancy-bank optgroup {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.occupancy-scroll {
+  max-width: 100%;
+}
+.occupancy-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-areas:
+    "out1 out2 out3 out4 inx"
+    "out5 out6 out7 out8 iny";
+  gap: 8px;
+}
+#jack-0 { grid-area: out1; }
+#jack-1 { grid-area: out2; }
+#jack-2 { grid-area: out3; }
+#jack-3 { grid-area: out4; }
+#jack-4 { grid-area: out5; }
+#jack-5 { grid-area: out6; }
+#jack-6 { grid-area: out7; }
+#jack-7 { grid-area: out8; }
+#jack-X { grid-area: inx; }
+#jack-Y { grid-area: iny; }
+
+.jack {
+  min-height: 72px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  text-align: left;
+  color: var(--ink);
+}
+.jack .jack-id {
+  display: block;
+  font-family: "IBM Plex Mono", "PT Mono", monospace;
+  font-size: 11px;
+  color: var(--muted);
+}
+.jack .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.jack .empty { display: block; margin-top: 8px; color: var(--muted); font-size: 11px; }
+.jack.is-stack { border-color: var(--warning); }
+.jack.is-triple { border-color: var(--danger); }
+.jack.is-on { outline: 1px solid var(--gold); }
+.jack.is-related { outline: 1px dashed var(--gold); }
+.jack.is-input { background: var(--surface2); }
+
+.chip {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-size: 11px;
+  line-height: 1.2;
+  color: #101418;
+  background: var(--muted);
+}
+.chip-midi {
+  font-family: "IBM Plex Mono", "PT Mono", monospace;
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+.chip-cv { background: var(--cv); }
+.chip-gate { background: var(--gate); }
+.chip-clock { background: var(--gold); }
+.chip-lfo, .chip-direct { background: var(--warning); color: #101418; }
+.chip-euc { background: #7a6bb0; color: #fff; }
+.chip-srr { background: #4d7aa8; color: #fff; }
+.chip-hid { background: #8a6a4a; color: #fff; }
+.chip-in { background: var(--cv); }
+
+.badge {
+  float: right;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--danger);
+  color: #fff;
+  font-family: "IBM Plex Mono", "PT Mono", monospace;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.section-intro {
+  padding: 16px 24px 8px;
+  max-width: 52rem;
+}
+.section-intro h1 { margin: 0 0 6px; font-size: 15px; }
+.section-intro p { margin: 0; color: var(--muted); line-height: 1.45; }
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px 12px;
+}
+.section-actions[hidden] { display: none; }
+.btn-clear-all {
+  height: 32px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gold);
+  background: transparent;
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+}
+.btn-clear-all:hover {
+  background: rgba(212, 160, 23, 0.12);
+}
+
+.bank-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.bank-row select { height: 32px; }
+
+#config-main {
+  padding: 0 16px 24px;
+  min-width: 0;
+}
+
+.config-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overflow-y: clip;
+  max-width: 100%;
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.config-scroll::-webkit-scrollbar { height: 10px; }
+.config-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 6px; }
+
+#config-main table {
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  background: var(--surface);
+  color: var(--ink);
+}
+#config-main th,
+#config-main td.tc,
+#config-main td.tc_a {
+  background: var(--head);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+#config-main tr.a { background: var(--zebra); }
+#config-main td, #config-main th {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+#config-main th:first-child,
+#config-main td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  min-width: 92px;
+  background: var(--surface);
+  box-shadow: 1px 0 0 var(--line);
+}
+#config-main tr.a td:first-child { background: var(--head); }
+#config-main tr.is-lit td {
+  background: rgba(212, 160, 23, 0.16);
+}
+#config-main tr.is-lit.a td {
+  background: rgba(212, 160, 23, 0.2);
+}
+#config-main tr.is-lit td:first-child,
+#config-main tr.is-lit.a td:first-child {
+  background: rgba(212, 160, 23, 0.28);
+  box-shadow: inset 3px 0 0 var(--gold), 1px 0 0 var(--line);
+}
+#config-main td.is-lit-cell {
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+#config-main .is-lit-field {
+  outline: 1px solid var(--gold);
+}
+#config-main caption { caption-side: top; text-align: left; padding: 10px 12px; font-weight: 600; }
+.btn-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  min-width: 52px;
+  height: 26px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--gold);
+  background: transparent;
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  vertical-align: middle;
+}
+.btn-clear:hover {
+  background: rgba(212, 160, 23, 0.12);
+}
+#config-main caption.hidden {
+  position: static;
+  left: auto;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+}
+
+#config-main select,
+#config-main input[type="text"],
+#config-main input[type="number"] {
+  height: 28px;
+  font-size: 11px;
+  padding: 0 6px;
+}
+
+.sysex-log {
+  margin: 8px 16px 24px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.sysex-log summary {
+  min-height: 40px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 500;
+}
+.sysex-log .log-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding: 12px;
+}
+.sysex-log textarea {
+  width: 100%;
+  font-family: "IBM Plex Mono", "PT Mono", monospace;
+  font-size: 11px;
+  resize: vertical;
+}
+.sysex-extras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 0 12px 12px;
+}
+
+.studio-help {
+  border-left: 1px solid var(--line);
+  background: var(--surface);
+  padding: 16px;
+}
+.studio-help .sticky {
+  position: static;
+}
+.studio-help h2 { margin: 0 0 12px; font-size: 15px; }
+.help-card, .warn-card, .manuals {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface2);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.help-kicker {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.help-card h3 { margin: 6px 0 8px; font-size: 15px; }
+.help-card p, .warn-card p { margin: 0; color: var(--muted); line-height: 1.45; }
+.warn-card { border-color: var(--danger); }
+.warn-card h3 { margin: 0 0 8px; color: var(--danger); font-size: 12px; }
+.manuals img { height: 24px; width: auto; max-width: 140px; margin-bottom: 10px; }
+.manuals .kicker { color: var(--muted); font-size: 11px; text-transform: uppercase; margin-bottom: 8px; }
+.manuals a { display: block; color: var(--ink); text-decoration: none; margin-top: 6px; font-size: 12px; }
+.manuals a:hover { color: var(--gold); }
+.help-hint { color: var(--muted); font-size: 11px; line-height: 1.4; }
+
+.q {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 14px;
+  padding: 0;
+}
+
+.legacy-toggles {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.note-chrome {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+  margin-top: 16px;
+}
+.note-chrome a { color: var(--ink); }
+
+@media (max-width: 1100px) {
+  .studio-layout { grid-template-columns: 1fr; }
+  .studio-nav,
+  .studio-help { position: static; }
+  .studio-nav {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .studio-nav .nav-btns { display: flex; gap: 4px; overflow-x: auto; }
+  .studio-nav button { width: auto; min-width: max-content; }
+  .studio-help { border-left: 0; border-top: 1px solid var(--line); }
+  .header-fields { grid-template-columns: 1fr; }
+  .sysex-log .log-grid { grid-template-columns: 1fr; }
+}
+
+</style>
 </head>
 
 <body>
@@ -1148,7 +1802,7 @@ function showHide( id, show ) {
   <header class="studio-header">
     <div class="brand">
       <a href="https://www.expert-sleepers.co.uk/" title="Expert Sleepers">
-        <img src="assets/expert-sleepers-logo.svg" alt="Expert Sleepers">
+        <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgoKPHN2ZwogICB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iCiAgIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiCiAgIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyIKICAgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiCiAgIHhtbG5zOmlua3NjYXBlPSJodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy9uYW1lc3BhY2VzL2lua3NjYXBlIgogICB3aWR0aD0iMzIwIgogICBoZWlnaHQ9IjUwIgogICBpZD0ic3ZnMiIKICAgdmVyc2lvbj0iMS4xIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ4LjUgcjEwMDQwIgogICBzb2RpcG9kaTpkb2NuYW1lPSJzaXRlLWxvZ28uc3ZnIgogICBpbmtzY2FwZTpleHBvcnQtZmlsZW5hbWU9Ii9Vc2Vycy9vcy9QaWN0dXJlcy9pbWFnZXMvZXhwZXJ0IHNsZWVwZXJzL2V4cGVydF9zbGVlcGVyc19iYW5uZXJfOTYweDE2MC5wbmciCiAgIGlua3NjYXBlOmV4cG9ydC14ZHBpPSI5MCIKICAgaW5rc2NhcGU6ZXhwb3J0LXlkcGk9IjkwIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCIgLz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmY4ZDAwIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjEuNDYzNTQxNyIKICAgICBpbmtzY2FwZTpjeD0iMzc2LjcyNzkxIgogICAgIGlua3NjYXBlOmN5PSI3NS4wMDAwMjUiCiAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9ImluIgogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9ImxheWVyMSIKICAgICBzaG93Z3JpZD0iZmFsc2UiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxNjgwIgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijk0NSIKICAgICBpbmtzY2FwZTp3aW5kb3cteD0iMCIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMSIKICAgICBpbmtzY2FwZTp3aW5kb3ctbWF4aW1pemVkPSIxIgogICAgIHVuaXRzPSJweCIKICAgICBmaXQtbWFyZ2luLXRvcD0iMCIKICAgICBmaXQtbWFyZ2luLWxlZnQ9IjAiCiAgICAgZml0LW1hcmdpbi1yaWdodD0iMCIKICAgICBmaXQtbWFyZ2luLWJvdHRvbT0iMCIgLz4KICA8bWV0YWRhdGEKICAgICBpZD0ibWV0YWRhdGE3Ij4KICAgIDxyZGY6UkRGPgogICAgICA8Y2M6V29yawogICAgICAgICByZGY6YWJvdXQ9IiI+CiAgICAgICAgPGRjOmZvcm1hdD5pbWFnZS9zdmcreG1sPC9kYzpmb3JtYXQ+CiAgICAgICAgPGRjOnR5cGUKICAgICAgICAgICByZGY6cmVzb3VyY2U9Imh0dHA6Ly9wdXJsLm9yZy9kYy9kY21pdHlwZS9TdGlsbEltYWdlIiAvPgogICAgICAgIDxkYzp0aXRsZSAvPgogICAgICA8L2NjOldvcms+CiAgICA8L3JkZjpSREY+CiAgPC9tZXRhZGF0YT4KICA8ZwogICAgIGlua3NjYXBlOmxhYmVsPSJMYXllciAxIgogICAgIGlua3NjYXBlOmdyb3VwbW9kZT0ibGF5ZXIiCiAgICAgaWQ9ImxheWVyMSIKICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLC0xMDAyLjM1OTQpIj4KICAgIDxyZWN0CiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTpub25lIgogICAgICAgaWQ9InJlY3Q0NDQwIgogICAgICAgd2lkdGg9Ijk2MCIKICAgICAgIGhlaWdodD0iMTUwIgogICAgICAgeD0iMCIKICAgICAgIHk9IjkwMi4zNTkzOCIgLz4KICAgIDxnCiAgICAgICBpZD0iZzMwNzQiCiAgICAgICB0cmFuc2Zvcm09Im1hdHJpeCgwLjM0NTU3MDMxLDAsMCwwLjM0NTU3MDMxLC03Ljk0NzE2ODgsNjk1LjgxNTE1KSIKICAgICAgIHN0eWxlPSJmaWxsOiNmZjhjMDA7ZmlsbC1vcGFjaXR5OjEiPgogICAgICA8cGF0aAogICAgICAgICBpZD0icGF0aDM5NjQiCiAgICAgICAgIGQ9Im0gMzYuMDM4OTksMTAxNS4yNDQ5IGMgLTAuMTM2ODUxLC0wLjIyMTMgNS4yMzg5ODksLTguNDcwOSAxMS45NDYxODcsLTE4LjMzMjU0IDYuNzA3MiwtOS44NjE1MyAxMi4xOTQ5MTQsLTE4LjE0ODMzIDEyLjE5NDkxNCwtMTguNDE1MTIgMCwtMC4zMDI2MiAtNC4xODE0LC0wLjUzNDMzIC0xMS4xMjIyMzgsLTAuNjE2MzIgbCAtMTEuMTIyMjM5LC0wLjEzMTU1IDAsLTUuODY2NjggMCwtNS44NjY2NiAxOC41NzEzNDcsLTAuMjQ0NDUgMTguNTcxMzQ2LC0wLjI0NDQzIDYuMjA4ODE4LC05LjA0NDQ2IGMgMy40MTQ4NTcsLTQuOTc0NDggNi4yMjI3NjgsLTkuMzE1MzIgNi4yMzk4MDUsLTkuNjQ2MzkgMC4wMjM0NywtMC40NTYyNyAtMi42NjAzNDEsLTAuNjMzNzYgLTExLjA5MTI3LC0wLjczMzMyIGwgLTExLjEyMjIzOSwtMC4xMzE1NiAwLC01Ljg2NjY3IDAsLTUuODY2NjggMTguMDQ2MTc0LC0wLjEyODQ1IGMgMTIuNTk3OTI5LC0wLjA4OTUgMTguMjQ4NTg1LC0wLjI5NjI5IDE4LjcxNjU3NSwtMC42ODQ2OCAwLjkzMTc5LC0wLjc3MzMzIDExLjg4MTc2LC0xNi45MDQxNCAxMS44ODE3NiwtMTcuNTAzNDYgMCwtMC4zMDU4IC00LjE0MzY5LC0wLjUzNjM1IC0xMS4xMjIyMywtMC42MTg3OSBsIC0xMS4xMjIyMzYsLTAuMTMxNTYgMCwtNS44NjY2OCAwLC01Ljg2NjY3IDIzLjgzMzM1NiwtMC4xMjcwOCBjIDE2LjA4NDQ1LC0wLjA4NTYgMjMuODMzMzcsMC4wMzY4IDIzLjgzMzM3LDAuMzc1OTEgMCwwLjI3NjUgLTUuNDA0OCw4LjQ2MzAxIC0xMi4wMTA2NywxOC4xOTIxNiAtNi42MDU4Nyw5LjcyOTE4IC0xMi4wNTA4NywxNy45MjAwNSAtMTIuMTAwMDMsMTguMjAxOSAtMC4wNTk0LDAuMzQwODEgNC4wMDU2NywwLjU5NDM5IDEyLjEzMjkxLDAuNzU2OTUgbCAxMi4yMjIyMywwLjI0NDQzIDAsNS44NjY2NyAwLDUuODY2NjggLTE5LjU0MDcxLDAuMjQ0NDUgLTE5LjU0MDcyLDAuMjQ0NDQgLTUuOTc0MzE2LDguOCBjIC0zLjI4NTg3Miw0Ljg0MDAyIC01LjgxNTU4Nyw4Ljk2MTAzIC01LjYyMTU4NCw5LjE1Nzc0IDAuMTk0MDA4LDAuMTk2NzkgNS43MzU3NjcsMC40MTY3OCAxMi4zMTUwMSwwLjQ4ODkxIGwgMTEuOTYyMjksMC4xMzExNyAwLDUuODY2NjUgMCw1Ljg2NjY4IC0xOS42MjI4OTksMC4xMjc2NiAtMTkuNjIyOTAxLDAuMTI3NjcgLTYuMjAzNzg2LDkuMTUyMTkgYyAtMy40MTIwNyw1LjAzMzc2IC02LjI0MTc3Niw5LjM3NjI0IC02LjI4ODIzNyw5LjY1MDE0IC0wLjA1NDQ5LDAuMzIxNSA0LjI0NTIyLDAuNTg0NCAxMi4xMzc3NzQsMC43NDIyIGwgMTIuMjIyMjI5LDAuMjQ0NSAwLDUuODY2NyAwLDUuODY2NiAtMjQuNzc5NTMsMC4xMjY3IGMgLTEzLjYyODczNiwwLjA3IC0yNC44OTE0NTIsLTAuMDU0IC0yNS4wMjgyNiwtMC4yNzU3IHoiCiAgICAgICAgIHN0eWxlPSJmaWxsOiNmZjhjMDA7ZmlsbC1vcGFjaXR5OjEiCiAgICAgICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIGQ9Im0gODUxLjQ4MTA1LDk5NS45MDUzNCBjIC0wLjM5OTc3LC0wLjQ4MTcgLTAuNTE4LC03LjgzNDY5IC0wLjQyNjUxLC0yNi41MjIyNSBsIDAuMTI2NjksLTI1Ljg1NTggNy4zMzMzMywwIDcuMzMzMzUsMCAwLjE0NTE4LDMuNjE2MzYgMC4xNDQ5OSwzLjYxNjQgMi40NDI1OSwtMi43NDA1NSBjIDMuODM5MTksLTQuMzA3NDcgMTAuOTY1MjQsLTcuMTA0NiAxNS4zMTczMSwtNi4wMTIzMiBsIDEuMjYxMDMsMC4zMTY1MSAwLDYuMzE3MzYgYyAwLDMuNDc0NjIgLTAuMTY1MDMsNi40MTYwNSAtMC4zNjY2Nyw2LjUzNjY3IC0wLjIwMTY4LDAuMTIwNjYgLTEuNTI2NDIsLTAuMDIxIC0yLjk0MzksLTAuMzE0MyAtNS4wNTY0MiwtMS4wNDY3OCAtMTAuNjY0MzEsMS4yMDQ2MSAtMTQuMjQ3NzksNS43MiBsIC0xLjUwODM0LDEuOTAwNTYgMCwxNi40NTcyNSBjIDAsMTIuMTQ4MjEgLTAuMTUzNzUsMTYuNjEwODMgLTAuNTg2NjYsMTcuMDQzOSAtMC44ODExNywwLjg4MTE3IC0xMy4yODU1OCwwLjgxMDU4IC0xNC4wMjQ1MiwtMC4wNzk4IHogbSAtMjY4LjM5OTAzLDAgYyAtMC40MDE2OCwtMC40ODQgLTAuNTE3NzUsLTEwLjgyNzQzIC0wLjQyNjU1LC0zOC4wMTExNyBsIDAuMTI1MzMsLTM3LjM0NjE2IDcuMzMzMzUsMCA3LjMzMzMzLDAgMC4xMjUzMywzNy4zNDYyOCBjIDAuMDkxMSwyNy4xODM3MiAtMC4wMjQ5LDM3LjUyNzE1IC0wLjQyNjU3LDM4LjAxMTE1IC0wLjQxNDQ3LDAuNDk5NCAtMi4xNjQ2NSwwLjY2NDg3IC03LjAzMjA3LDAuNjY0ODcgLTQuODY3NDYsMCAtNi42MTc2MywtMC4xNjU0MiAtNy4wMzIwOSwtMC42NjQ4NyB6IG0gLTE3Mi41NzkzLDAgYyAtMC4zOTk3OSwtMC40ODE3IC0wLjUxNzk3LC03LjgzNDY5IC0wLjQyNjUxLC0yNi41MjIyNSBsIDAuMTI2NywtMjUuODU1OCA3LjMzMzMxLDAgNy4zMzMzMywwIDAuMTQ1MTgsMy42MTYzNiAwLjE0NTE4LDMuNjE2NCAyLjQ0MjU5LC0yLjc0MDU1IGMgMy44MzkyMSwtNC4zMDc0NyAxMC45NjUyNiwtNy4xMDQ2IDE1LjMxNzI5LC02LjAxMjMyIGwgMS4yNjEwNSwwLjMxNjUxIDAsNi4zMTczNiBjIDAsMy40NzQ2MiAtMC4xNjQ4NCw2LjQxNjA1IC0wLjM2NjY1LDYuNTM2NjcgLTAuMjAxNjcsMC4xMjA2NiAtMS41MjY0MiwtMC4wMjEgLTIuOTQzODksLTAuMzE0MyAtNS4wNTY0NSwtMS4wNDY3OCAtMTAuNjY0MzEsMS4yMDQ2MSAtMTQuMjQ3ODIsNS43MiBsIC0xLjUwODMyLDEuOTAwNTYgMCwxNi40NTcyNSBjIDAsMTIuMTQ4MjEgLTAuMTUzNzUsMTYuNjEwODMgLTAuNTg2NjYsMTcuMDQzOSAtMC44ODExNywwLjg4MTE3IC0xMy4yODU1NiwwLjgxMDU4IC0xNC4wMjQ1LC0wLjA3OTggeiBtIC0xODQuNjY5OTUsLTAuMDQzNiBjIC0wLjM0MTEsLTAuODg4OTEgLTEuMDA5NTMsMC4xODg5NyA4Ljc0MDAxLC0xNC4wOTQxNSBsIDguMjY5NywtMTIuMTE1MTEgLTguMzY2MzUsLTEyLjcyMTUzIGMgLTQuNjAxNSwtNi45OTY5MSAtOC4yMzc1LC0xMi45MzAwOCAtOC4wODAwMiwtMTMuMTg0OTMgMC4xNjE3MywtMC4yNjE0NiAzLjc4Nzk3LC0wLjQ2MzMzIDguMzIyNTEsLTAuNDYzMzMgbCA4LjAzNjE1LDAgNS4yMTIxMiw3LjgyMjI0IGMgMi44NjY2OCw0LjMwMjIzIDUuMzUzNzQsNy44MjIyNSA1LjUyNjg1LDcuODIyMjUgMC4xNzMwMSwwIDIuNTgxNiwtMy41MjAwMiA1LjM1MjI0LC03LjgyMjI1IGwgNS4wMzc1MywtNy44MjIyNCA1LjgxNTEsMCBjIDQuOTM1MjcsMCA1LjgxNTA5LDAuMTE1MDIgNS44MTUwOSwwLjc2MDQ5IDAsMC40MTgyNCAtMy40MzUsNi4xNDA3OCAtNy42MzMzMywxMi43MTY3OCAtNC43MTY0LDcuMzg3NDggLTcuNTQ2MzksMTIuMjgxMDUgLTcuNDA1ODIsMTIuODA2MjMgMC4xMjUxMywwLjQ2NzQyIDMuODkwMTIsNi40MTUwNiA4LjM2NjY0LDEzLjIxNjk4IDQuNDc2NTQsNi44MDE5MiA4LjEzOTE4LDEyLjU1MzM1IDguMTM5MTgsMTIuNzgxMDMgMCwwLjIyNzY4IC0wLjM0Nzk4LDAuNTQ3NTIgLTAuNzczMzMsMC43MTA3IC0xLjAyMDgsMC4zOTE3NiAtMTQuMDc0OSwwLjM4Mzk3IC0xNS4wOTg4NSwtMC4wMDggLTAuNDM4MTUsLTAuMTY4MTUgLTMuMjIwNzksLTMuOTA4MTIgLTYuMTgzNjUsLTguMzExMSAtMi45NjI4NywtNC40MDMgLTUuNTY2NDYsLTguMDA1NDUgLTUuNzg1ODMsLTguMDA1NDUgLTAuMjE5MzMsMCAtMi43NDkzNCwzLjQwODk2IC01LjYyMjIzLDcuNTc1NDEgLTIuODcyODgsNC4xNjY0NyAtNS41NTQ1MSw3LjkwNjQ3IC01Ljk1OTE1LDguMzExMTIgLTEuMDUxMjIsMS4wNTEyNiAtMTEuMzIyNDEsMS4wNzM4NSAtMTEuNzI0NTYsMC4wMjYxIHogbSAtNTMuMzc2OTYsMC4xMjMxOSBjIC0wLjg0ODc4LC0wLjg0ODggLTAuODQ4NzgsLTY5Ljg0NDYgMCwtNzAuNjkzNDIgMC44NDM5NSwtMC44NDM5MSA0Mi45NjA1NSwtMC44NDM5MSA0My44MDQ0OCwwIDAuMzcxMjMsMC4zNzEyMiAwLjU4NjY4LDIuMjM3MjYgMC41ODY2OCw1LjA4MTAzIDAsMy42NDcyNiAtMC4xNDU3Niw0LjU1MDMgLTAuNzczMzEsNC43OTExMSAtMC40MjUzMiwwLjE2MzI4IC03LjAyNTM0LDAuMjk2NzcgLTE0LjY2NjY4LDAuMjk2NzcgbCAtMTMuODkzMzYsMCAwLDkuMjg4OTEgMCw5LjI4ODg5IDExLjIwNDQ2LDAgYyA2LjE2MjQ1LDAgMTEuNTUyNDYsMC4xMzM1IDExLjk3NzgxLDAuMjk2NzYgMS4xNDI3MiwwLjQzODQ2IDEuMTQyNzIsOS43MjM1NiAwLDEwLjE2MjA0IC0wLjQyNTM1LDAuMTYzMjggLTUuODE1MzYsMC4yOTY3NiAtMTEuOTc3ODEsMC4yOTY3NiBsIC0xMS4yMDQ0NiwwIDAsMTAuMjY2NjggMCwxMC4yNjY2OCAxNS4zMDIyMywwIGMgMTEuMjQ5OSwwIDE1LjQ1NzYxLDAuMTU1NDkgMTUuODg4OTEsMC41ODY2OCAwLjM3MDM0LDAuMzcwMzIgMC41ODY2NSwyLjIyNzE4IDAuNTg2NjUsNS4wMzU1NiAwLDIuODA4MzcgLTAuMjE2MzEsNC42NjUyMiAtMC41ODY2NSw1LjAzNTU1IC0wLjg0NDYyLDAuODQ0NjIgLTQ1LjQwNDMzLDAuODQ0NjIgLTQ2LjI0ODk1LDAgeiBtIDczMi41MDMxNCwxLjAyODMzIGMgLTQuMDE2NjEsLTAuNTcwOTcgLTkuNjQ3MTcsLTEuOTM4NzggLTEwLjM4ODkxLC0yLjUyMzc5IC0wLjkyMzAzLC0wLjcyNzk0IC0wLjg0OTA5LC0xMC4wNzk0IDAuMDgyNSwtMTAuNDM2ODYgMC4zODE1LC0wLjE0NjM1IDIuMzAzMDgsMC4zMTQzNSA0LjI3MDE2LDEuMDIzOTUgNy43MzIwNywyLjc4OTE0IDE1LjA0NTg1LDMuNDY2MzUgMTguODM4NjQsMS43NDQzOCAxLjY2OTMsLTAuNzU3ODggMi4xNTU4MSwtMS4yOTI5IDIuNjM3NDIsLTIuOTAwNDIgMC41MDE2MywtMS42NzQzNiAwLjQ3MSwtMi4xNTM2NyAtMC4yMDM0NSwtMy4xODMwMSAtMS4yNjkxLC0xLjkzNjg4IC0zLjg4MTU3LC0zLjY3MDMxIC03LjgxMzMyLC01LjE4NDI5IC04Ljk5NDQ0LC0zLjQ2MzQ1IC0xNC4wNDMzLC02Ljc1MTMzIC0xNi4zMTE5OSwtMTAuNjIyNTUgLTEuMDYyMTEsLTEuODEyMzQgLTEuMzU3NTYsLTMuMDI1NTMgLTEuNTI4MTMsLTYuMjc1MTcgLTAuMTg0NjksLTMuNTE5OTIgLTAuMDU4NCwtNC4zNjI5MSAxLjAwMTM5LC02LjY3NzYgMS40NzE3MiwtMy4yMTQ2NCA0LjA3ODAyLC01LjgzOTY1IDcuNDIzMTUsLTcuNDc2MjYgMi45NDQ0NCwtMS40NDA1NSA4Ljk3NTkxLC0yLjY4NTU2IDEzLjAxMDUzLC0yLjY4NTU2IDMuNjg5OSwwIDE0LjAwNDA1LDEuMzQ4ODkgMTUuMTk3NDEsMS45ODc1MyAwLjc5OTE3LDAuNDI3NjggMC45MTc5NSwxLjA5MjQ3IDAuOTE3OTUsNS4xMzM5MiAwLDMuNjgxMDkgLTAuMTUyMzksNC43MDEwMyAtMC43MzUxNSw0LjkyNDc0IC0wLjQwNDQ4LDAuMTU1MyAtMi41NDk1LC0wLjIyNDcgLTQuNzY2NzcsLTAuODQ0MTEgLTUuNTE0MDgsLTEuNTQwNCAtMTIuNTY1NzcsLTEuNjIzMTIgLTE1LjAyODc2LC0wLjE3NjMyIC0yLjE1MDUyLDEuMjYzMzQgLTIuODI3MzgsMy4wMDkyOCAtMS45Njk0OSw1LjA4MDQ0IDAuNzc1NTksMS44NzIzMSAyLjk5MzMzLDMuMjA4NzUgOS43ODkwNCw1Ljg5ODg5IDcuNDQzNzIsMi45NDY3IDEwLjUwODA2LDQuNzIwMjkgMTMuMTUwMDcsNy42MTEwOCAyLjg1MjA0LDMuMTIwNTUgMy42OTc1NSw1LjczNjQgMy4zNjM1OCwxMC40MDUyOCAtMC44MjUxLDExLjUzMTU0IC0xMy4zNDk4NiwxNy42NzU1NiAtMzAuOTM1OSwxNS4xNzU2NyB6IG0gLTgyLjY5MTg1LC0zNS4xNTI3IGMgLTAuMjI3NTgsLTcuMTk5MyAtNC4wNTcxOSwtMTEuMTE0NjYgLTkuODE0NjksLTEwLjAzNDUxIC0yLjY0NTcsMC40OTYzMiAtNS42ODY3NiwzLjcxMzc0IC02LjY4MzksNy4wNzE0NCAtMC44NDI1NywyLjgzNzIzIC0wLjk5Mzk2LDQuNTQ5MTggLTAuNDUwMzksNS4wOTI3MyAwLjE4NTQ3LDAuMTg1MjcgNC4wOTA0LDAuMjc3MDUgOC42Nzc3OSwwLjIwMzcyIGwgOC4zNDA3LC0wLjEzMzUxIHogbSAtMTIuMTUyNzIsMzQuOTkwNCBjIC00LjczMTk4LC0xLjExMjcxIC03LjAxNDg5LC0yLjA5NjE2IC0xMC4yODg1NCwtNC40MzIxNyAtNy4yODQ5NywtNS4xOTg1MSAtMTAuNjIzMTcsLTEyLjQxMDM1IC0xMC42MzY5NywtMjIuOTgwNDMgLTAuMDExNywtOC45OTg5IDIuMzA1NzcsLTE1LjIxMzMzIDcuNjYzNjUsLTIwLjU1MDQ0IDMuNDM4NDYsLTMuNDI1MSA2LjkzNDA3LC01LjMwMDI0IDExLjgwMzcxLC02LjMzMTc2IDQuMjk4MTIsLTAuOTEwNCA3Ljg3ODU5LC0wLjkxNjU3IDEyLjEwNjM2LC0wLjAyMDYgOC4wNzY3NSwxLjcxMTQ0IDEyLjY4OTQ3LDYuNTUyIDE1LjA1NDA4LDE1Ljc5NzUzIDEuMjUzMDMsNC44OTkyIDEuODA0NTYsMTIuOTk5NTYgMC45NTQ4LDE0LjAyMzQ1IC0wLjUzNDAxLDAuNjQzNDcgLTIuODA4NDQsMC43NDg1NCAtMTYuMjA1ODEsMC43NDg1NCAtMTcuODI5ODQsMCAtMTYuNDY2OTYsLTAuNDM5MzggLTE0LjU0Nzc5LDQuNjkwMDcgMS4xOTgwMywzLjIwMjAzIDMuNzMxOCw2LjIyMzc1IDYuMzMwMjYsNy41NDkzNyA0LjI1Mzk3LDIuMTcwMjMgMTIuMDUwMDUsMi4xNjU3MiAxOS44ODIzMSwtMC4wMSA1LjMyOTY2LC0xLjQ4MTQ5IDUuMDE3MzMsLTEuNzIzNTggNS4wMTczMywzLjg4ODE1IDAsNC40NzAzIC0wLjA4NTgsNC45MTc2MyAtMS4wNDEyNSw1LjQyODk2IC0zLjk4MTA5LDIuMTMwNTcgLTIwLjQ3NDUxLDMuNTIxNzkgLTI2LjA5MjE0LDIuMjAwODMgeiBtIC0xMTAuMDY5NjYsLTM0Ljk5MDQgYyAtMC4yMjc1OCwtNy4xOTkzIC00LjA1NzE4LC0xMS4xMTQ2NiAtOS44MTQ3LC0xMC4wMzQ1MSAtMi42NDU2NywwLjQ5NjMyIC01LjY4Njc3LDMuNzEzNzQgLTYuNjgzODksNy4wNzE0NCAtMC44NDI1NywyLjgzNzIzIC0wLjk5Mzk2LDQuNTQ5MTggLTAuNDUwMzcsNS4wOTI3MyAwLjE4NTQ3LDAuMTg1MjcgNC4wOTAzOCwwLjI3NzA1IDguNjc3NzksMC4yMDM3MiBsIDguMzQwNjgsLTAuMTMzNTEgeiBtIC0xMi4xNTI3MSwzNC45OTA0IGMgLTQuNzMxOTUsLTEuMTEyNzEgLTcuMDE0ODgsLTIuMDk2MTYgLTEwLjI4ODUzLC00LjQzMjE3IC03LjI4NTAxLC01LjE5ODUxIC0xMC42MjMxNywtMTIuNDEwMzUgLTEwLjYzNjk3LC0yMi45ODA0MyAtMC4wMTE3LC04Ljk5ODkgMi4zMDU3NSwtMTUuMjEzMzMgNy42NjM2NSwtMjAuNTUwNDQgMy40Mzg0NiwtMy40MjUxIDYuOTM0MDQsLTUuMzAwMjQgMTEuODAzNjcsLTYuMzMxNzYgNC4yOTgxNCwtMC45MTA0IDcuODc4NjEsLTAuOTE2NTcgMTIuMTA2NCwtMC4wMjA2IDguMDc2NzMsMS43MTE0NCAxMi42ODk0Niw2LjU1MiAxNS4wNTQwOCwxNS43OTc1MyAxLjI1MzAzLDQuODk5MiAxLjgwNDU0LDEyLjk5OTU2IDAuOTU0OCwxNC4wMjM0NSAtMC41MzQwMSwwLjY0MzQ3IC0yLjgwODQyLDAuNzQ4NTQgLTE2LjIwNTgzLDAuNzQ4NTQgLTE3LjgyOTgyLDAgLTE2LjQ2Njk2LC0wLjQzOTM4IC0xNC41NDc3Nyw0LjY5MDA3IDEuMTk4MDMsMy4yMDIwMyAzLjczMTc4LDYuMjIzNzUgNi4zMzAyNCw3LjU0OTM3IDQuMjUzOTcsMi4xNzAyMyAxMi4wNTAwNSwyLjE2NTcyIDE5Ljg4MjMsLTAuMDEgNS4zMjk2OSwtMS40ODE0OSA1LjAxNzMyLC0xLjcyMzU4IDUuMDE3MzIsMy44ODgxNSAwLDQuNDcwMyAtMC4wODU4LDQuOTE3NjMgLTEuMDQxMjIsNS40Mjg5NiAtMy45ODExLDIuMTMwNTcgLTIwLjQ3NDUsMy41MjE3OSAtMjYuMDkyMTQsMi4yMDA4MyB6IG0gLTQ1LjA0NzM1LC0zNC45OTA0IGMgLTAuMjI3NTgsLTcuMTk5MyAtNC4wNTcyMSwtMTEuMTE0NjYgLTkuODE0NzEsLTEwLjAzNDUxIC0yLjY0NTY3LDAuNDk2MzIgLTUuNjg2NzYsMy43MTM3NCAtNi42ODM5MSw3LjA3MTQ0IC0wLjg0MjUzLDIuODM3MjMgLTAuOTkzOTYsNC41NDkxOCAtMC40NTAzNSw1LjA5MjczIDAuMTg1NDYsMC4xODUyNyA0LjA5MDM5LDAuMjc3MDUgOC42Nzc3OSwwLjIwMzcyIGwgOC4zNDA3LC0wLjEzMzUxIHogbSAtMTIuMTUyNzIsMzQuOTkwNCBjIC00LjczMTk1LC0xLjExMjcxIC03LjAxNDg3LC0yLjA5NjE2IC0xMC4yODg1NSwtNC40MzIxNyAtNy4yODQ5NywtNS4xOTg1MSAtMTAuNjIzMTcsLTEyLjQxMDM1IC0xMC42MzY5NSwtMjIuOTgwNDMgLTAuMDExNywtOC45OTg5IDIuMzA1NzQsLTE1LjIxMzMzIDcuNjYzNjMsLTIwLjU1MDQ0IDMuNDM4NDYsLTMuNDI1MSA2LjkzNDA2LC01LjMwMDI0IDExLjgwMzcsLTYuMzMxNzYgNC4yOTgxMiwtMC45MTA0IDcuODc4NiwtMC45MTY1NyAxMi4xMDYzNywtMC4wMjA2IDguMDc2NzcsMS43MTE0NCAxMi42ODk0OCw2LjU1MiAxNS4wNTQwOSwxNS43OTc1MyAxLjI1MzAxLDQuODk5MiAxLjgwNDU0LDEyLjk5OTU2IDAuOTU0ODEsMTQuMDIzNDUgLTAuNTM0MDIsMC42NDM0NyAtMi44MDg0MywwLjc0ODU0IC0xNi4yMDU4MywwLjc0ODU0IC0xNy44Mjk4NSwwIC0xNi40NjY5NiwtMC40MzkzOCAtMTQuNTQ3NzksNC42OTAwNyAxLjE5ODA1LDMuMjAyMDMgMy43MzE4LDYuMjIzNzUgNi4zMzAyNCw3LjU0OTM3IDQuMjUzOTgsMi4xNzAyMyAxMi4wNTAwNiwyLjE2NTcyIDE5Ljg4MjMyLC0wLjAxIDUuMzI5NjcsLTEuNDgxNDkgNS4wMTczMywtMS43MjM1OCA1LjAxNzMzLDMuODg4MTUgMCw0LjQ3MDMgLTAuMDg1OCw0LjkxNzYzIC0xLjA0MTIzLDUuNDI4OTYgLTMuOTgxMSwyLjEzMDU3IC0yMC40NzQ1MSwzLjUyMTc5IC0yNi4wOTIxNCwyLjIwMDgzIHogbSAtMTYzLjcyODc2LC0wLjA4MSBjIC0zLjU2NzU0LC0wLjg2MzE5IC01LjU4NDA5LC0yLjA4MjYxIC04LjAxOTU0LC00Ljg0OTQ4IC0zLjM5MjYxLC0zLjg1NDE2IC0zLjYzNDQyLC01LjI3MTA3IC0zLjk2MTkzLC0yMy4yMTU2NiBsIC0wLjI5MDAxLC0xNS44ODg5IC0yLjQzNTAxLC0wLjE1Mzc1IGMgLTEuMzM5MiwtMC4wODQzIC0yLjYwMDgzLC0wLjQxNDQ2IC0yLjgwMzYxLC0wLjczMzMzIC0wLjIwMjc1LC0wLjMxODg2IC0wLjM2ODYyLC0yLjExOTcyIC0wLjM2ODYyLC00LjAwMTk1IDAsLTEuODgyMjMgMC4xNjU4MSwtMy42ODMxMSAwLjM2ODYyLC00LjAwMTk0IDAuMjAyNzgsLTAuMzE4ODUgMS40NjQ0MSwtMC42NDg4OCAyLjgwMzYxLC0wLjczMzM0IGwgMi40MzUwMSwtMC4xNTM3NCAwLjI0NDQ1LC00LjA1MjQ3IGMgMC4yNTM5MywtNC4yMDk1NyAwLjY0NzkyLC00Ljk0MzM5IDIuNjg4OSwtNS4wMDc5NyAwLjUzNzc3LC0wLjAxNzUgMy4zNTAxMSwtMC4zMDkwOCA2LjI0OTY1LC0wLjY0OTAxIDMuODc0MjIsLTAuNDU0MiA1LjM5MTk4LC0wLjQ3MzM3IDUuNzI0ODYsLTAuMDcyMiAwLjI0OTA5LDAuMzAwMTkgMC41MTY3OCwyLjYyMzg4IDAuNTk0OCw1LjE2Mzc2IGwgMC4xNDE4Nyw0LjYxODAxIDUuMzc3NzksMC4yNDQ0MyA1LjM3Nzc3LDAuMjQ0NDMgMCw0LjQwMDAyIDAsNC40MDAwMSAtNS4zNzc3NywwLjI0NDQ1IC01LjM3Nzc5LDAuMjQ0NDMgMCwxNC42NjY3IGMgMCwxMy4xMTE1NiAwLjA5MTksMTQuODM0NjcgMC44NjU3MSwxNi4yNTA5NiAxLjQwODM1LDIuNTc3MjkgMi45ODg5MywzLjMwNDYzIDcuMTgxMzYsMy4zMDQ2MyBsIDMuNjg2MjYsMCAwLjE0MDEyLDQuMjAzMDIgYyAwLjE2MTM0LDQuODM1MjEgMC4wNzgyLDQuOTYzOTggLTMuNzA4NjYsNS43NjIwOSAtMy40MTk1MywwLjcyMDY3IC03Ljk3NiwwLjYyODU0IC0xMS41Mzc4NCwtMC4yMzMzNCB6IG0gLTg1LjY3NDQsLTM0LjkwOTU5IGMgLTAuMjI3NTYsLTcuMTk5MjggLTQuMDU3MiwtMTEuMTE0NjYgLTkuODE0NywtMTAuMDM0NSAtMi42NDU2NywwLjQ5NjMyIC01LjY4Njc4LDMuNzEzNzYgLTYuNjgzOTMsNy4wNzE0NCAtMC44NDI1MSwyLjgzNzIzIC0wLjk5Mzk0LDQuNTQ5MTcgLTAuNDUwMzMsNS4wOTI3IDAuMTg1MjcsMC4xODU0NyA0LjA5MDM5LDAuMjc3MDcgOC42Nzc3OSwwLjIwMzcyIGwgOC4zNDA2OCwtMC4xMzMzMSB6IG0gLTEyLjE1MjcxLDM0Ljk5MDQxIGMgLTQuNzMxOTcsLTEuMTEyNzIgLTcuMDE0ODksLTIuMDk2MTUgLTEwLjI4ODU1LC00LjQzMjE3IC03LjI4NDk5LC01LjE5ODUyIC0xMC42MjMxNywtMTIuNDEwMzcgLTEwLjYzNjk1LC0yMi45ODA0NSAtMC4wMTE3LC04Ljk5ODkgMi4zMDU3NCwtMTUuMjEzMzEgNy42NjM2NSwtMjAuNTUwNDMgMy40Mzg0NCwtMy40MjUwOSA2LjkzNDA2LC01LjMwMDI0IDExLjgwMzY4LC02LjMzMTc0IDQuMjk4MTMsLTAuOTEwNDEgNy44Nzg2LC0wLjkxNjU4IDEyLjEwNjM3LC0wLjAyMDYgOC4wNzY3NywxLjcxMTQ2IDEyLjY4OTQ2LDYuNTUyIDE1LjA1NDA4LDE1Ljc5NzUzIDEuMjUzMDIsNC44OTkyMyAxLjgwNDU0LDEyLjk5OTU4IDAuOTU0ODIsMTQuMDIzNDUgLTAuNTM0MDIsMC42NDM0OSAtMi44MDg0NSwwLjc0ODU2IC0xNi4yMDU4MywwLjc0ODU2IC0xNy44Mjk4NSwwIC0xNi40NjY5NiwtMC40MzkzNiAtMTQuNTQ3NzksNC42OTAwNSAxLjE5ODAzLDMuMjAyMDUgMy43MzE4LDYuMjIzNzcgNi4zMzAyNCw3LjU0OTM5IDQuMjUzOTgsMi4xNzAyMiAxMi4wNTAwNSwyLjE2NTc0IDE5Ljg4MjMyLC0wLjAxIDUuMzI5NjcsLTEuNDgxNDggNS4wMTczMSwtMS43MjM1OCA1LjAxNzMxLDMuODg4MTQgMCw0LjQ3MDMxIC0wLjA4NTgsNC45MTc2NSAtMS4wNDEyMyw1LjQyODk3IC0zLjk4MTA4LDIuMTMwNTkgLTIwLjQ3NDQ5LDMuNTIxODIgLTI2LjA5MjEyLDIuMjAwODMgeiBtIDE2NS4yNDQ2MiwwLjg2MDc1IGMgLTQuNzc5NzUsLTAuNTg3MTcgLTEwLjgxMzIzLC0xLjc1OTkyIC0xMS4zNTExNywtMi4yMDYzMiAtMC43OTI1LC0wLjY1Nzc1IC0wLjg5OTQ4LC0xMS45NjEyNiAtMC4xMTU4LC0xMi4yMjI1MSAwLjI4MTA0LC0wLjA5MzggMy4wMDU4NiwwLjY0NjkzIDYuMDU1MTYsMS42NDU3OCAxMi4zNDg5MSw0LjA0NTEyIDIxLjQxNzE3LDMuMDM5NSAyNC4xODcwMiwtMi42ODIyMSAyLjc0NjI1LC01LjY3Mjk4IDAuMzI5MjMsLTkuNTM1NzEgLTkuNDE4MDUsLTE1LjA1MTU4IC0xMi4wNjE3LC02LjgyNTUzIC0xNy4zMDU4MiwtMTEuMTkyNTMgLTE5Ljc4MDMzLC0xNi40NzIxNiAtMS4xNjA5MiwtMi40NzY5IC0xLjMxMDI4LC0zLjM4MTczIC0xLjMxMDI4LC03LjkzOTEgMCwtNC43OTYxMSAwLjEwNTI4LC01LjM1NzY3IDEuNTYwMjQsLTguMzExMTYgMy43MzIsLTcuNTc2MzQgMTEuMDYzODcsLTExLjIzNzU2IDIyLjQ5MTg0LC0xMS4yMzEyNyA1LjEwODQ3LDAuMDA2IDEyLjkyMzQzLDAuOTE2ODYgMTYuODI4MDIsMS45NjgyNSBsIDEuODk3NzQsMC41MTA5OSAwLDUuNTc0NTEgYyAwLDMuMTQwNjQgLTAuMjEwNzIsNS43MDQ3NiAtMC40ODI2LDUuODcyODQgLTAuMjY1NDUsMC4xNjQwNiAtMi41OTIzMywtMC4zNzc1NyAtNS4xNzA4MiwtMS4yMDM1NCAtNS41MjU0OCwtMS43Njk5NCAtMTEuMjUxNzEsLTIuNjYwNTggLTE0LjA3OTQyLC0yLjE4OTg5IC02LjMxNjQyLDEuMDUxNDEgLTkuNDU2ODYsNS40ODkwMyAtNy4xOTMzOCwxMC4xNjQ3NCAxLjIxODQsMi41MTY4NiAzLjc4NjUsNC40NDAxIDEyLjUwMzk3LDkuMzY0MTkgMTQuNDk3OTgsOC4xODkyMyAxOC43NzQwNSwxMy4xNDk1NiAxOS4yMTkwOSwyMi4yOTQyNSAwLjU1NDI5LDExLjM4OTk5IC02LjA4MjkxLDE5LjEyOTQgLTE4LjU4NzM0LDIxLjY3NDAzIC0zLjQ2MTE5LDAuNzA0MzYgLTEzLjEwMTU1LDAuOTUwMjUgLTE3LjI1Mzk5LDAuNDQwMTYgeiBtIDIyNC4xODU4NywtMTEuNDQwMTkgYyA0LjA4MzgzLC0yLjA0MDggNi40NjYsLTguMDk5ODkgNi41MjE5MywtMTYuNTg4NzMgMC4wNzA3LC0xMC43MTkyNSAtMi45MzYyMywtMTUuNjQ0NDcgLTkuNTUxMDksLTE1LjY0NDQ3IC0zLjM5Mjg1LDAgLTYuMDYzNDcsMS4zNDkzNCAtOS4xNjgzOSw0LjYzMjMxIGwgLTIuNDk5MTQsMi42NDI1MiAwLDEwLjQ4OTcyIDAsMTAuNDg5NzUgMS43MTc3LDEuNTA4MTYgYyA0LjMwMTc4LDMuNzc3MDMgOC42OTI1LDQuNjEyODcgMTIuOTc4OTksMi40NzA3NCB6IG0gLTI5LjYxMTA2LDI3Ljc3Nzk2IGMgLTAuMTQ2MzUsLTAuNjA1IC0wLjIwNTYzLC0xNi43MTk5OSAtMC4xMzE1NiwtMzUuODExMTQgbCAwLjEzNDg3LC0zNC43MTExNSA3LjMzMzMzLDAgNy4zMzMzNSwwIDAuMTQzMjQsMy41MjcxNCAwLjE0MzIzLDMuNTI3MTEgMy4wMzQ0NywtMy4wODUwNCBjIDQuMTAzNTMsLTQuMTcxOTYgNy4xMzUyOSwtNS4zNzQ5NSAxMy41NDU2MiwtNS4zNzQ5NSA1LjgzMTk2LDAgOS4xMzc4NywxLjE3OTQ0IDEyLjg3MjEsNC41OTIzMSA1LjA5NzMyLDQuNjU4NyA3LjY2MTI2LDExLjgwNTkzIDcuNjYxMjYsMjEuMzU2NzMgMCwxMC44MjUyNyAtMi43NDg4OCwxOC41OTY1NiAtOC40NzE1OCwyMy45NDk4NSAtNC4yNjM2LDMuOTg4NDEgLTcuNzAxOTUsNS4yODQ2OSAtMTQuMDE3MzIsNS4yODQ2OSAtNS4yMjQ5NiwwIC03LjkxMTA0LC0wLjc3ODUxIC0xMS45Nzc4MSwtMy40NzE0NSBsIC0yLjQ0NDQ2LC0xLjYxODcxIC0wLjI2NzE4LDExLjM0NTExIGMgLTAuMTQ2OTQsNi4yMzk3IC0wLjMxMTk1LDExLjQgLTAuMzY2NjUsMTEuNDY3MyAtMC4wNTQ3LDAuMDY3IC0zLjI4NTMxLDAuMTIyNCAtNy4xNzkwNSwwLjEyMjQgLTYuOTM3LDAgLTcuMDg0OTgsLTAuMDIyIC03LjM0NTksLTEuMSB6IE0gMzE4LjA3NzEyLDk4Ni4yNzE1NCBjIDQuMDgzODUsLTIuMDQwOCA2LjQ2NiwtOC4wOTk5IDYuNTIxOTMsLTE2LjU4ODc1IDAuMDcwNywtMTAuNzE5MjQgLTIuOTM2MjEsLTE1LjY0NDQ3IC05LjU1MTA5LC0xNS42NDQ0NyAtMy4zOTI4NCwwIC02LjA2MzQzLDEuMzQ5MzUgLTkuMTY4MzgsNC42MzIzMyBsIC0yLjQ5OTE1LDIuNjQyNSAwLDEwLjQ4OTczIDAsMTAuNDg5NzYgMS43MTc3MiwxLjUwODE3IGMgNC4zMDE3OCwzLjc3NzAxIDguNjkyNDgsNC42MTI4NSAxMi45Nzg5NywyLjQ3MDczIHogbSAtMjkuNjExMDYsMjcuNzc3OTYgYyAtMC4xNDYzNSwtMC42MDUgLTAuMjA1NjQsLTE2LjcyIC0wLjEzMTU2LC0zNS44MTExMyBsIDAuMTM0ODcsLTM0LjcxMTE4IDcuMzMzMzcsMCA3LjMzMzMzLDAgMC4xNDMyNCwzLjUyNzE1IDAuMTQzMjMsMy41MjcxMSAzLjAzNDQ3LC0zLjA4NTAzIGMgNC4xMDM1NSwtNC4xNzE5NSA3LjEzNTI5LC01LjM3NDk3IDEzLjU0NTYyLC01LjM3NDk3IDUuODMxOTYsMCA5LjEzNzg3LDEuMTc5NDcgMTIuODcyMTIsNC41OTIzNCA1LjA5NzMsNC42NTg2OCA3LjY2MTI2LDExLjgwNTkgNy42NjEyNiwyMS4zNTY3IDAsMTAuODI1MjggLTIuNzQ4ODgsMTguNTk2NTYgLTguNDcxNiwyMy45NDk4NSAtNC4yNjM2LDMuOTg4NDQgLTcuNzAxOTUsNS4yODQ3MSAtMTQuMDE3MzQsNS4yODQ3MSAtNS4yMjQ5NiwwIC03LjkxMTAyLC0wLjc3ODUgLTExLjk3NzgxLC0zLjQ3MTQ1IGwgLTIuNDQ0NDQsLTEuNjE4NzIgLTAuMjY3MTYsMTEuMzQ1MTIgYyAtMC4xNDY5NCw2LjIzOTggLTAuMzExOTcsMTEuNDAwMSAtMC4zNjY2NywxMS40NjczIC0wLjA1NDcsMC4wNjcgLTMuMjg1MzEsMC4xMjI0IC03LjE3OTA4LDAuMTIyNCAtNi45MzY5NywwIC03LjA4NDk3LC0wLjAyMiAtNy4zNDU4OSwtMS4xIHoiCiAgICAgICAgIHN0eWxlPSJmaWxsOiNmZjhjMDA7ZmlsbC1vcGFjaXR5OjEiCiAgICAgICAgIGlkPSJwYXRoMzE0OSIKICAgICAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIgLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPgo=" alt="Expert Sleepers">
       </a>
       <div class="brand-copy">
         <strong>FH-2 Configuration</strong>
@@ -2697,7 +3351,7 @@ showHide( "cvm_table", false );
         <div class="warn-card" id="help-warn" hidden></div>
         <p class="help-hint">Select a control to see its description from the FH-2 manual. Use Device / expander above to inspect the FH-2 main module (jacks 1–8) or an FHX-8CV expander.</p>
         <div class="manuals">
-          <img src="assets/expert-sleepers-logo.svg" alt="Expert Sleepers">
+          <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgoKPHN2ZwogICB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iCiAgIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiCiAgIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyIKICAgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiCiAgIHhtbG5zOmlua3NjYXBlPSJodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy9uYW1lc3BhY2VzL2lua3NjYXBlIgogICB3aWR0aD0iMzIwIgogICBoZWlnaHQ9IjUwIgogICBpZD0ic3ZnMiIKICAgdmVyc2lvbj0iMS4xIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjQ4LjUgcjEwMDQwIgogICBzb2RpcG9kaTpkb2NuYW1lPSJzaXRlLWxvZ28uc3ZnIgogICBpbmtzY2FwZTpleHBvcnQtZmlsZW5hbWU9Ii9Vc2Vycy9vcy9QaWN0dXJlcy9pbWFnZXMvZXhwZXJ0IHNsZWVwZXJzL2V4cGVydF9zbGVlcGVyc19iYW5uZXJfOTYweDE2MC5wbmciCiAgIGlua3NjYXBlOmV4cG9ydC14ZHBpPSI5MCIKICAgaW5rc2NhcGU6ZXhwb3J0LXlkcGk9IjkwIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzNCIgLz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9ImJhc2UiCiAgICAgcGFnZWNvbG9yPSIjZmY4ZDAwIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjEuNDYzNTQxNyIKICAgICBpbmtzY2FwZTpjeD0iMzc2LjcyNzkxIgogICAgIGlua3NjYXBlOmN5PSI3NS4wMDAwMjUiCiAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9ImluIgogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9ImxheWVyMSIKICAgICBzaG93Z3JpZD0iZmFsc2UiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxNjgwIgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijk0NSIKICAgICBpbmtzY2FwZTp3aW5kb3cteD0iMCIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMSIKICAgICBpbmtzY2FwZTp3aW5kb3ctbWF4aW1pemVkPSIxIgogICAgIHVuaXRzPSJweCIKICAgICBmaXQtbWFyZ2luLXRvcD0iMCIKICAgICBmaXQtbWFyZ2luLWxlZnQ9IjAiCiAgICAgZml0LW1hcmdpbi1yaWdodD0iMCIKICAgICBmaXQtbWFyZ2luLWJvdHRvbT0iMCIgLz4KICA8bWV0YWRhdGEKICAgICBpZD0ibWV0YWRhdGE3Ij4KICAgIDxyZGY6UkRGPgogICAgICA8Y2M6V29yawogICAgICAgICByZGY6YWJvdXQ9IiI+CiAgICAgICAgPGRjOmZvcm1hdD5pbWFnZS9zdmcreG1sPC9kYzpmb3JtYXQ+CiAgICAgICAgPGRjOnR5cGUKICAgICAgICAgICByZGY6cmVzb3VyY2U9Imh0dHA6Ly9wdXJsLm9yZy9kYy9kY21pdHlwZS9TdGlsbEltYWdlIiAvPgogICAgICAgIDxkYzp0aXRsZSAvPgogICAgICA8L2NjOldvcms+CiAgICA8L3JkZjpSREY+CiAgPC9tZXRhZGF0YT4KICA8ZwogICAgIGlua3NjYXBlOmxhYmVsPSJMYXllciAxIgogICAgIGlua3NjYXBlOmdyb3VwbW9kZT0ibGF5ZXIiCiAgICAgaWQ9ImxheWVyMSIKICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLC0xMDAyLjM1OTQpIj4KICAgIDxyZWN0CiAgICAgICBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTpub25lIgogICAgICAgaWQ9InJlY3Q0NDQwIgogICAgICAgd2lkdGg9Ijk2MCIKICAgICAgIGhlaWdodD0iMTUwIgogICAgICAgeD0iMCIKICAgICAgIHk9IjkwMi4zNTkzOCIgLz4KICAgIDxnCiAgICAgICBpZD0iZzMwNzQiCiAgICAgICB0cmFuc2Zvcm09Im1hdHJpeCgwLjM0NTU3MDMxLDAsMCwwLjM0NTU3MDMxLC03Ljk0NzE2ODgsNjk1LjgxNTE1KSIKICAgICAgIHN0eWxlPSJmaWxsOiNmZjhjMDA7ZmlsbC1vcGFjaXR5OjEiPgogICAgICA8cGF0aAogICAgICAgICBpZD0icGF0aDM5NjQiCiAgICAgICAgIGQ9Im0gMzYuMDM4OTksMTAxNS4yNDQ5IGMgLTAuMTM2ODUxLC0wLjIyMTMgNS4yMzg5ODksLTguNDcwOSAxMS45NDYxODcsLTE4LjMzMjU0IDYuNzA3MiwtOS44NjE1MyAxMi4xOTQ5MTQsLTE4LjE0ODMzIDEyLjE5NDkxNCwtMTguNDE1MTIgMCwtMC4zMDI2MiAtNC4xODE0LC0wLjUzNDMzIC0xMS4xMjIyMzgsLTAuNjE2MzIgbCAtMTEuMTIyMjM5LC0wLjEzMTU1IDAsLTUuODY2NjggMCwtNS44NjY2NiAxOC41NzEzNDcsLTAuMjQ0NDUgMTguNTcxMzQ2LC0wLjI0NDQzIDYuMjA4ODE4LC05LjA0NDQ2IGMgMy40MTQ4NTcsLTQuOTc0NDggNi4yMjI3NjgsLTkuMzE1MzIgNi4yMzk4MDUsLTkuNjQ2MzkgMC4wMjM0NywtMC40NTYyNyAtMi42NjAzNDEsLTAuNjMzNzYgLTExLjA5MTI3LC0wLjczMzMyIGwgLTExLjEyMjIzOSwtMC4xMzE1NiAwLC01Ljg2NjY3IDAsLTUuODY2NjggMTguMDQ2MTc0LC0wLjEyODQ1IGMgMTIuNTk3OTI5LC0wLjA4OTUgMTguMjQ4NTg1LC0wLjI5NjI5IDE4LjcxNjU3NSwtMC42ODQ2OCAwLjkzMTc5LC0wLjc3MzMzIDExLjg4MTc2LC0xNi45MDQxNCAxMS44ODE3NiwtMTcuNTAzNDYgMCwtMC4zMDU4IC00LjE0MzY5LC0wLjUzNjM1IC0xMS4xMjIyMywtMC42MTg3OSBsIC0xMS4xMjIyMzYsLTAuMTMxNTYgMCwtNS44NjY2OCAwLC01Ljg2NjY3IDIzLjgzMzM1NiwtMC4xMjcwOCBjIDE2LjA4NDQ1LC0wLjA4NTYgMjMuODMzMzcsMC4wMzY4IDIzLjgzMzM3LDAuMzc1OTEgMCwwLjI3NjUgLTUuNDA0OCw4LjQ2MzAxIC0xMi4wMTA2NywxOC4xOTIxNiAtNi42MDU4Nyw5LjcyOTE4IC0xMi4wNTA4NywxNy45MjAwNSAtMTIuMTAwMDMsMTguMjAxOSAtMC4wNTk0LDAuMzQwODEgNC4wMDU2NywwLjU5NDM5IDEyLjEzMjkxLDAuNzU2OTUgbCAxMi4yMjIyMywwLjI0NDQzIDAsNS44NjY2NyAwLDUuODY2NjggLTE5LjU0MDcxLDAuMjQ0NDUgLTE5LjU0MDcyLDAuMjQ0NDQgLTUuOTc0MzE2LDguOCBjIC0zLjI4NTg3Miw0Ljg0MDAyIC01LjgxNTU4Nyw4Ljk2MTAzIC01LjYyMTU4NCw5LjE1Nzc0IDAuMTk0MDA4LDAuMTk2NzkgNS43MzU3NjcsMC40MTY3OCAxMi4zMTUwMSwwLjQ4ODkxIGwgMTEuOTYyMjksMC4xMzExNyAwLDUuODY2NjUgMCw1Ljg2NjY4IC0xOS42MjI4OTksMC4xMjc2NiAtMTkuNjIyOTAxLDAuMTI3NjcgLTYuMjAzNzg2LDkuMTUyMTkgYyAtMy40MTIwNyw1LjAzMzc2IC02LjI0MTc3Niw5LjM3NjI0IC02LjI4ODIzNyw5LjY1MDE0IC0wLjA1NDQ5LDAuMzIxNSA0LjI0NTIyLDAuNTg0NCAxMi4xMzc3NzQsMC43NDIyIGwgMTIuMjIyMjI5LDAuMjQ0NSAwLDUuODY2NyAwLDUuODY2NiAtMjQuNzc5NTMsMC4xMjY3IGMgLTEzLjYyODczNiwwLjA3IC0yNC44OTE0NTIsLTAuMDU0IC0yNS4wMjgyNiwtMC4yNzU3IHoiCiAgICAgICAgIHN0eWxlPSJmaWxsOiNmZjhjMDA7ZmlsbC1vcGFjaXR5OjEiCiAgICAgICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIGQ9Im0gODUxLjQ4MTA1LDk5NS45MDUzNCBjIC0wLjM5OTc3LC0wLjQ4MTcgLTAuNTE4LC03LjgzNDY5IC0wLjQyNjUxLC0yNi41MjIyNSBsIDAuMTI2NjksLTI1Ljg1NTggNy4zMzMzMywwIDcuMzMzMzUsMCAwLjE0NTE4LDMuNjE2MzYgMC4xNDQ5OSwzLjYxNjQgMi40NDI1OSwtMi43NDA1NSBjIDMuODM5MTksLTQuMzA3NDcgMTAuOTY1MjQsLTcuMTA0NiAxNS4zMTczMSwtNi4wMTIzMiBsIDEuMjYxMDMsMC4zMTY1MSAwLDYuMzE3MzYgYyAwLDMuNDc0NjIgLTAuMTY1MDMsNi40MTYwNSAtMC4zNjY2Nyw2LjUzNjY3IC0wLjIwMTY4LDAuMTIwNjYgLTEuNTI2NDIsLTAuMDIxIC0yLjk0MzksLTAuMzE0MyAtNS4wNTY0MiwtMS4wNDY3OCAtMTAuNjY0MzEsMS4yMDQ2MSAtMTQuMjQ3NzksNS43MiBsIC0xLjUwODM0LDEuOTAwNTYgMCwxNi40NTcyNSBjIDAsMTIuMTQ4MjEgLTAuMTUzNzUsMTYuNjEwODMgLTAuNTg2NjYsMTcuMDQzOSAtMC44ODExNywwLjg4MTE3IC0xMy4yODU1OCwwLjgxMDU4IC0xNC4wMjQ1MiwtMC4wNzk4IHogbSAtMjY4LjM5OTAzLDAgYyAtMC40MDE2OCwtMC40ODQgLTAuNTE3NzUsLTEwLjgyNzQzIC0wLjQyNjU1LC0zOC4wMTExNyBsIDAuMTI1MzMsLTM3LjM0NjE2IDcuMzMzMzUsMCA3LjMzMzMzLDAgMC4xMjUzMywzNy4zNDYyOCBjIDAuMDkxMSwyNy4xODM3MiAtMC4wMjQ5LDM3LjUyNzE1IC0wLjQyNjU3LDM4LjAxMTE1IC0wLjQxNDQ3LDAuNDk5NCAtMi4xNjQ2NSwwLjY2NDg3IC03LjAzMjA3LDAuNjY0ODcgLTQuODY3NDYsMCAtNi42MTc2MywtMC4xNjU0MiAtNy4wMzIwOSwtMC42NjQ4NyB6IG0gLTE3Mi41NzkzLDAgYyAtMC4zOTk3OSwtMC40ODE3IC0wLjUxNzk3LC03LjgzNDY5IC0wLjQyNjUxLC0yNi41MjIyNSBsIDAuMTI2NywtMjUuODU1OCA3LjMzMzMxLDAgNy4zMzMzMywwIDAuMTQ1MTgsMy42MTYzNiAwLjE0NTE4LDMuNjE2NCAyLjQ0MjU5LC0yLjc0MDU1IGMgMy44MzkyMSwtNC4zMDc0NyAxMC45NjUyNiwtNy4xMDQ2IDE1LjMxNzI5LC02LjAxMjMyIGwgMS4yNjEwNSwwLjMxNjUxIDAsNi4zMTczNiBjIDAsMy40NzQ2MiAtMC4xNjQ4NCw2LjQxNjA1IC0wLjM2NjY1LDYuNTM2NjcgLTAuMjAxNjcsMC4xMjA2NiAtMS41MjY0MiwtMC4wMjEgLTIuOTQzODksLTAuMzE0MyAtNS4wNTY0NSwtMS4wNDY3OCAtMTAuNjY0MzEsMS4yMDQ2MSAtMTQuMjQ3ODIsNS43MiBsIC0xLjUwODMyLDEuOTAwNTYgMCwxNi40NTcyNSBjIDAsMTIuMTQ4MjEgLTAuMTUzNzUsMTYuNjEwODMgLTAuNTg2NjYsMTcuMDQzOSAtMC44ODExNywwLjg4MTE3IC0xMy4yODU1NiwwLjgxMDU4IC0xNC4wMjQ1LC0wLjA3OTggeiBtIC0xODQuNjY5OTUsLTAuMDQzNiBjIC0wLjM0MTEsLTAuODg4OTEgLTEuMDA5NTMsMC4xODg5NyA4Ljc0MDAxLC0xNC4wOTQxNSBsIDguMjY5NywtMTIuMTE1MTEgLTguMzY2MzUsLTEyLjcyMTUzIGMgLTQuNjAxNSwtNi45OTY5MSAtOC4yMzc1LC0xMi45MzAwOCAtOC4wODAwMiwtMTMuMTg0OTMgMC4xNjE3MywtMC4yNjE0NiAzLjc4Nzk3LC0wLjQ2MzMzIDguMzIyNTEsLTAuNDYzMzMgbCA4LjAzNjE1LDAgNS4yMTIxMiw3LjgyMjI0IGMgMi44NjY2OCw0LjMwMjIzIDUuMzUzNzQsNy44MjIyNSA1LjUyNjg1LDcuODIyMjUgMC4xNzMwMSwwIDIuNTgxNiwtMy41MjAwMiA1LjM1MjI0LC03LjgyMjI1IGwgNS4wMzc1MywtNy44MjIyNCA1LjgxNTEsMCBjIDQuOTM1MjcsMCA1LjgxNTA5LDAuMTE1MDIgNS44MTUwOSwwLjc2MDQ5IDAsMC40MTgyNCAtMy40MzUsNi4xNDA3OCAtNy42MzMzMywxMi43MTY3OCAtNC43MTY0LDcuMzg3NDggLTcuNTQ2MzksMTIuMjgxMDUgLTcuNDA1ODIsMTIuODA2MjMgMC4xMjUxMywwLjQ2NzQyIDMuODkwMTIsNi40MTUwNiA4LjM2NjY0LDEzLjIxNjk4IDQuNDc2NTQsNi44MDE5MiA4LjEzOTE4LDEyLjU1MzM1IDguMTM5MTgsMTIuNzgxMDMgMCwwLjIyNzY4IC0wLjM0Nzk4LDAuNTQ3NTIgLTAuNzczMzMsMC43MTA3IC0xLjAyMDgsMC4zOTE3NiAtMTQuMDc0OSwwLjM4Mzk3IC0xNS4wOTg4NSwtMC4wMDggLTAuNDM4MTUsLTAuMTY4MTUgLTMuMjIwNzksLTMuOTA4MTIgLTYuMTgzNjUsLTguMzExMSAtMi45NjI4NywtNC40MDMgLTUuNTY2NDYsLTguMDA1NDUgLTUuNzg1ODMsLTguMDA1NDUgLTAuMjE5MzMsMCAtMi43NDkzNCwzLjQwODk2IC01LjYyMjIzLDcuNTc1NDEgLTIuODcyODgsNC4xNjY0NyAtNS41NTQ1MSw3LjkwNjQ3IC01Ljk1OTE1LDguMzExMTIgLTEuMDUxMjIsMS4wNTEyNiAtMTEuMzIyNDEsMS4wNzM4NSAtMTEuNzI0NTYsMC4wMjYxIHogbSAtNTMuMzc2OTYsMC4xMjMxOSBjIC0wLjg0ODc4LC0wLjg0ODggLTAuODQ4NzgsLTY5Ljg0NDYgMCwtNzAuNjkzNDIgMC44NDM5NSwtMC44NDM5MSA0Mi45NjA1NSwtMC44NDM5MSA0My44MDQ0OCwwIDAuMzcxMjMsMC4zNzEyMiAwLjU4NjY4LDIuMjM3MjYgMC41ODY2OCw1LjA4MTAzIDAsMy42NDcyNiAtMC4xNDU3Niw0LjU1MDMgLTAuNzczMzEsNC43OTExMSAtMC40MjUzMiwwLjE2MzI4IC03LjAyNTM0LDAuMjk2NzcgLTE0LjY2NjY4LDAuMjk2NzcgbCAtMTMuODkzMzYsMCAwLDkuMjg4OTEgMCw5LjI4ODg5IDExLjIwNDQ2LDAgYyA2LjE2MjQ1LDAgMTEuNTUyNDYsMC4xMzM1IDExLjk3NzgxLDAuMjk2NzYgMS4xNDI3MiwwLjQzODQ2IDEuMTQyNzIsOS43MjM1NiAwLDEwLjE2MjA0IC0wLjQyNTM1LDAuMTYzMjggLTUuODE1MzYsMC4yOTY3NiAtMTEuOTc3ODEsMC4yOTY3NiBsIC0xMS4yMDQ0NiwwIDAsMTAuMjY2NjggMCwxMC4yNjY2OCAxNS4zMDIyMywwIGMgMTEuMjQ5OSwwIDE1LjQ1NzYxLDAuMTU1NDkgMTUuODg4OTEsMC41ODY2OCAwLjM3MDM0LDAuMzcwMzIgMC41ODY2NSwyLjIyNzE4IDAuNTg2NjUsNS4wMzU1NiAwLDIuODA4MzcgLTAuMjE2MzEsNC42NjUyMiAtMC41ODY2NSw1LjAzNTU1IC0wLjg0NDYyLDAuODQ0NjIgLTQ1LjQwNDMzLDAuODQ0NjIgLTQ2LjI0ODk1LDAgeiBtIDczMi41MDMxNCwxLjAyODMzIGMgLTQuMDE2NjEsLTAuNTcwOTcgLTkuNjQ3MTcsLTEuOTM4NzggLTEwLjM4ODkxLC0yLjUyMzc5IC0wLjkyMzAzLC0wLjcyNzk0IC0wLjg0OTA5LC0xMC4wNzk0IDAuMDgyNSwtMTAuNDM2ODYgMC4zODE1LC0wLjE0NjM1IDIuMzAzMDgsMC4zMTQzNSA0LjI3MDE2LDEuMDIzOTUgNy43MzIwNywyLjc4OTE0IDE1LjA0NTg1LDMuNDY2MzUgMTguODM4NjQsMS43NDQzOCAxLjY2OTMsLTAuNzU3ODggMi4xNTU4MSwtMS4yOTI5IDIuNjM3NDIsLTIuOTAwNDIgMC41MDE2MywtMS42NzQzNiAwLjQ3MSwtMi4xNTM2NyAtMC4yMDM0NSwtMy4xODMwMSAtMS4yNjkxLC0xLjkzNjg4IC0zLjg4MTU3LC0zLjY3MDMxIC03LjgxMzMyLC01LjE4NDI5IC04Ljk5NDQ0LC0zLjQ2MzQ1IC0xNC4wNDMzLC02Ljc1MTMzIC0xNi4zMTE5OSwtMTAuNjIyNTUgLTEuMDYyMTEsLTEuODEyMzQgLTEuMzU3NTYsLTMuMDI1NTMgLTEuNTI4MTMsLTYuMjc1MTcgLTAuMTg0NjksLTMuNTE5OTIgLTAuMDU4NCwtNC4zNjI5MSAxLjAwMTM5LC02LjY3NzYgMS40NzE3MiwtMy4yMTQ2NCA0LjA3ODAyLC01LjgzOTY1IDcuNDIzMTUsLTcuNDc2MjYgMi45NDQ0NCwtMS40NDA1NSA4Ljk3NTkxLC0yLjY4NTU2IDEzLjAxMDUzLC0yLjY4NTU2IDMuNjg5OSwwIDE0LjAwNDA1LDEuMzQ4ODkgMTUuMTk3NDEsMS45ODc1MyAwLjc5OTE3LDAuNDI3NjggMC45MTc5NSwxLjA5MjQ3IDAuOTE3OTUsNS4xMzM5MiAwLDMuNjgxMDkgLTAuMTUyMzksNC43MDEwMyAtMC43MzUxNSw0LjkyNDc0IC0wLjQwNDQ4LDAuMTU1MyAtMi41NDk1LC0wLjIyNDcgLTQuNzY2NzcsLTAuODQ0MTEgLTUuNTE0MDgsLTEuNTQwNCAtMTIuNTY1NzcsLTEuNjIzMTIgLTE1LjAyODc2LC0wLjE3NjMyIC0yLjE1MDUyLDEuMjYzMzQgLTIuODI3MzgsMy4wMDkyOCAtMS45Njk0OSw1LjA4MDQ0IDAuNzc1NTksMS44NzIzMSAyLjk5MzMzLDMuMjA4NzUgOS43ODkwNCw1Ljg5ODg5IDcuNDQzNzIsMi45NDY3IDEwLjUwODA2LDQuNzIwMjkgMTMuMTUwMDcsNy42MTEwOCAyLjg1MjA0LDMuMTIwNTUgMy42OTc1NSw1LjczNjQgMy4zNjM1OCwxMC40MDUyOCAtMC44MjUxLDExLjUzMTU0IC0xMy4zNDk4NiwxNy42NzU1NiAtMzAuOTM1OSwxNS4xNzU2NyB6IG0gLTgyLjY5MTg1LC0zNS4xNTI3IGMgLTAuMjI3NTgsLTcuMTk5MyAtNC4wNTcxOSwtMTEuMTE0NjYgLTkuODE0NjksLTEwLjAzNDUxIC0yLjY0NTcsMC40OTYzMiAtNS42ODY3NiwzLjcxMzc0IC02LjY4MzksNy4wNzE0NCAtMC44NDI1NywyLjgzNzIzIC0wLjk5Mzk2LDQuNTQ5MTggLTAuNDUwMzksNS4wOTI3MyAwLjE4NTQ3LDAuMTg1MjcgNC4wOTA0LDAuMjc3MDUgOC42Nzc3OSwwLjIwMzcyIGwgOC4zNDA3LC0wLjEzMzUxIHogbSAtMTIuMTUyNzIsMzQuOTkwNCBjIC00LjczMTk4LC0xLjExMjcxIC03LjAxNDg5LC0yLjA5NjE2IC0xMC4yODg1NCwtNC40MzIxNyAtNy4yODQ5NywtNS4xOTg1MSAtMTAuNjIzMTcsLTEyLjQxMDM1IC0xMC42MzY5NywtMjIuOTgwNDMgLTAuMDExNywtOC45OTg5IDIuMzA1NzcsLTE1LjIxMzMzIDcuNjYzNjUsLTIwLjU1MDQ0IDMuNDM4NDYsLTMuNDI1MSA2LjkzNDA3LC01LjMwMDI0IDExLjgwMzcxLC02LjMzMTc2IDQuMjk4MTIsLTAuOTEwNCA3Ljg3ODU5LC0wLjkxNjU3IDEyLjEwNjM2LC0wLjAyMDYgOC4wNzY3NSwxLjcxMTQ0IDEyLjY4OTQ3LDYuNTUyIDE1LjA1NDA4LDE1Ljc5NzUzIDEuMjUzMDMsNC44OTkyIDEuODA0NTYsMTIuOTk5NTYgMC45NTQ4LDE0LjAyMzQ1IC0wLjUzNDAxLDAuNjQzNDcgLTIuODA4NDQsMC43NDg1NCAtMTYuMjA1ODEsMC43NDg1NCAtMTcuODI5ODQsMCAtMTYuNDY2OTYsLTAuNDM5MzggLTE0LjU0Nzc5LDQuNjkwMDcgMS4xOTgwMywzLjIwMjAzIDMuNzMxOCw2LjIyMzc1IDYuMzMwMjYsNy41NDkzNyA0LjI1Mzk3LDIuMTcwMjMgMTIuMDUwMDUsMi4xNjU3MiAxOS44ODIzMSwtMC4wMSA1LjMyOTY2LC0xLjQ4MTQ5IDUuMDE3MzMsLTEuNzIzNTggNS4wMTczMywzLjg4ODE1IDAsNC40NzAzIC0wLjA4NTgsNC45MTc2MyAtMS4wNDEyNSw1LjQyODk2IC0zLjk4MTA5LDIuMTMwNTcgLTIwLjQ3NDUxLDMuNTIxNzkgLTI2LjA5MjE0LDIuMjAwODMgeiBtIC0xMTAuMDY5NjYsLTM0Ljk5MDQgYyAtMC4yMjc1OCwtNy4xOTkzIC00LjA1NzE4LC0xMS4xMTQ2NiAtOS44MTQ3LC0xMC4wMzQ1MSAtMi42NDU2NywwLjQ5NjMyIC01LjY4Njc3LDMuNzEzNzQgLTYuNjgzODksNy4wNzE0NCAtMC44NDI1NywyLjgzNzIzIC0wLjk5Mzk2LDQuNTQ5MTggLTAuNDUwMzcsNS4wOTI3MyAwLjE4NTQ3LDAuMTg1MjcgNC4wOTAzOCwwLjI3NzA1IDguNjc3NzksMC4yMDM3MiBsIDguMzQwNjgsLTAuMTMzNTEgeiBtIC0xMi4xNTI3MSwzNC45OTA0IGMgLTQuNzMxOTUsLTEuMTEyNzEgLTcuMDE0ODgsLTIuMDk2MTYgLTEwLjI4ODUzLC00LjQzMjE3IC03LjI4NTAxLC01LjE5ODUxIC0xMC42MjMxNywtMTIuNDEwMzUgLTEwLjYzNjk3LC0yMi45ODA0MyAtMC4wMTE3LC04Ljk5ODkgMi4zMDU3NSwtMTUuMjEzMzMgNy42NjM2NSwtMjAuNTUwNDQgMy40Mzg0NiwtMy40MjUxIDYuOTM0MDQsLTUuMzAwMjQgMTEuODAzNjcsLTYuMzMxNzYgNC4yOTgxNCwtMC45MTA0IDcuODc4NjEsLTAuOTE2NTcgMTIuMTA2NCwtMC4wMjA2IDguMDc2NzMsMS43MTE0NCAxMi42ODk0Niw2LjU1MiAxNS4wNTQwOCwxNS43OTc1MyAxLjI1MzAzLDQuODk5MiAxLjgwNDU0LDEyLjk5OTU2IDAuOTU0OCwxNC4wMjM0NSAtMC41MzQwMSwwLjY0MzQ3IC0yLjgwODQyLDAuNzQ4NTQgLTE2LjIwNTgzLDAuNzQ4NTQgLTE3LjgyOTgyLDAgLTE2LjQ2Njk2LC0wLjQzOTM4IC0xNC41NDc3Nyw0LjY5MDA3IDEuMTk4MDMsMy4yMDIwMyAzLjczMTc4LDYuMjIzNzUgNi4zMzAyNCw3LjU0OTM3IDQuMjUzOTcsMi4xNzAyMyAxMi4wNTAwNSwyLjE2NTcyIDE5Ljg4MjMsLTAuMDEgNS4zMjk2OSwtMS40ODE0OSA1LjAxNzMyLC0xLjcyMzU4IDUuMDE3MzIsMy44ODgxNSAwLDQuNDcwMyAtMC4wODU4LDQuOTE3NjMgLTEuMDQxMjIsNS40Mjg5NiAtMy45ODExLDIuMTMwNTcgLTIwLjQ3NDUsMy41MjE3OSAtMjYuMDkyMTQsMi4yMDA4MyB6IG0gLTQ1LjA0NzM1LC0zNC45OTA0IGMgLTAuMjI3NTgsLTcuMTk5MyAtNC4wNTcyMSwtMTEuMTE0NjYgLTkuODE0NzEsLTEwLjAzNDUxIC0yLjY0NTY3LDAuNDk2MzIgLTUuNjg2NzYsMy43MTM3NCAtNi42ODM5MSw3LjA3MTQ0IC0wLjg0MjUzLDIuODM3MjMgLTAuOTkzOTYsNC41NDkxOCAtMC40NTAzNSw1LjA5MjczIDAuMTg1NDYsMC4xODUyNyA0LjA5MDM5LDAuMjc3MDUgOC42Nzc3OSwwLjIwMzcyIGwgOC4zNDA3LC0wLjEzMzUxIHogbSAtMTIuMTUyNzIsMzQuOTkwNCBjIC00LjczMTk1LC0xLjExMjcxIC03LjAxNDg3LC0yLjA5NjE2IC0xMC4yODg1NSwtNC40MzIxNyAtNy4yODQ5NywtNS4xOTg1MSAtMTAuNjIzMTcsLTEyLjQxMDM1IC0xMC42MzY5NSwtMjIuOTgwNDMgLTAuMDExNywtOC45OTg5IDIuMzA1NzQsLTE1LjIxMzMzIDcuNjYzNjMsLTIwLjU1MDQ0IDMuNDM4NDYsLTMuNDI1MSA2LjkzNDA2LC01LjMwMDI0IDExLjgwMzcsLTYuMzMxNzYgNC4yOTgxMiwtMC45MTA0IDcuODc4NiwtMC45MTY1NyAxMi4xMDYzNywtMC4wMjA2IDguMDc2NzcsMS43MTE0NCAxMi42ODk0OCw2LjU1MiAxNS4wNTQwOSwxNS43OTc1MyAxLjI1MzAxLDQuODk5MiAxLjgwNDU0LDEyLjk5OTU2IDAuOTU0ODEsMTQuMDIzNDUgLTAuNTM0MDIsMC42NDM0NyAtMi44MDg0MywwLjc0ODU0IC0xNi4yMDU4MywwLjc0ODU0IC0xNy44Mjk4NSwwIC0xNi40NjY5NiwtMC40MzkzOCAtMTQuNTQ3NzksNC42OTAwNyAxLjE5ODA1LDMuMjAyMDMgMy43MzE4LDYuMjIzNzUgNi4zMzAyNCw3LjU0OTM3IDQuMjUzOTgsMi4xNzAyMyAxMi4wNTAwNiwyLjE2NTcyIDE5Ljg4MjMyLC0wLjAxIDUuMzI5NjcsLTEuNDgxNDkgNS4wMTczMywtMS43MjM1OCA1LjAxNzMzLDMuODg4MTUgMCw0LjQ3MDMgLTAuMDg1OCw0LjkxNzYzIC0xLjA0MTIzLDUuNDI4OTYgLTMuOTgxMSwyLjEzMDU3IC0yMC40NzQ1MSwzLjUyMTc5IC0yNi4wOTIxNCwyLjIwMDgzIHogbSAtMTYzLjcyODc2LC0wLjA4MSBjIC0zLjU2NzU0LC0wLjg2MzE5IC01LjU4NDA5LC0yLjA4MjYxIC04LjAxOTU0LC00Ljg0OTQ4IC0zLjM5MjYxLC0zLjg1NDE2IC0zLjYzNDQyLC01LjI3MTA3IC0zLjk2MTkzLC0yMy4yMTU2NiBsIC0wLjI5MDAxLC0xNS44ODg5IC0yLjQzNTAxLC0wLjE1Mzc1IGMgLTEuMzM5MiwtMC4wODQzIC0yLjYwMDgzLC0wLjQxNDQ2IC0yLjgwMzYxLC0wLjczMzMzIC0wLjIwMjc1LC0wLjMxODg2IC0wLjM2ODYyLC0yLjExOTcyIC0wLjM2ODYyLC00LjAwMTk1IDAsLTEuODgyMjMgMC4xNjU4MSwtMy42ODMxMSAwLjM2ODYyLC00LjAwMTk0IDAuMjAyNzgsLTAuMzE4ODUgMS40NjQ0MSwtMC42NDg4OCAyLjgwMzYxLC0wLjczMzM0IGwgMi40MzUwMSwtMC4xNTM3NCAwLjI0NDQ1LC00LjA1MjQ3IGMgMC4yNTM5MywtNC4yMDk1NyAwLjY0NzkyLC00Ljk0MzM5IDIuNjg4OSwtNS4wMDc5NyAwLjUzNzc3LC0wLjAxNzUgMy4zNTAxMSwtMC4zMDkwOCA2LjI0OTY1LC0wLjY0OTAxIDMuODc0MjIsLTAuNDU0MiA1LjM5MTk4LC0wLjQ3MzM3IDUuNzI0ODYsLTAuMDcyMiAwLjI0OTA5LDAuMzAwMTkgMC41MTY3OCwyLjYyMzg4IDAuNTk0OCw1LjE2Mzc2IGwgMC4xNDE4Nyw0LjYxODAxIDUuMzc3NzksMC4yNDQ0MyA1LjM3Nzc3LDAuMjQ0NDMgMCw0LjQwMDAyIDAsNC40MDAwMSAtNS4zNzc3NywwLjI0NDQ1IC01LjM3Nzc5LDAuMjQ0NDMgMCwxNC42NjY3IGMgMCwxMy4xMTE1NiAwLjA5MTksMTQuODM0NjcgMC44NjU3MSwxNi4yNTA5NiAxLjQwODM1LDIuNTc3MjkgMi45ODg5MywzLjMwNDYzIDcuMTgxMzYsMy4zMDQ2MyBsIDMuNjg2MjYsMCAwLjE0MDEyLDQuMjAzMDIgYyAwLjE2MTM0LDQuODM1MjEgMC4wNzgyLDQuOTYzOTggLTMuNzA4NjYsNS43NjIwOSAtMy40MTk1MywwLjcyMDY3IC03Ljk3NiwwLjYyODU0IC0xMS41Mzc4NCwtMC4yMzMzNCB6IG0gLTg1LjY3NDQsLTM0LjkwOTU5IGMgLTAuMjI3NTYsLTcuMTk5MjggLTQuMDU3MiwtMTEuMTE0NjYgLTkuODE0NywtMTAuMDM0NSAtMi42NDU2NywwLjQ5NjMyIC01LjY4Njc4LDMuNzEzNzYgLTYuNjgzOTMsNy4wNzE0NCAtMC44NDI1MSwyLjgzNzIzIC0wLjk5Mzk0LDQuNTQ5MTcgLTAuNDUwMzMsNS4wOTI3IDAuMTg1MjcsMC4xODU0NyA0LjA5MDM5LDAuMjc3MDcgOC42Nzc3OSwwLjIwMzcyIGwgOC4zNDA2OCwtMC4xMzMzMSB6IG0gLTEyLjE1MjcxLDM0Ljk5MDQxIGMgLTQuNzMxOTcsLTEuMTEyNzIgLTcuMDE0ODksLTIuMDk2MTUgLTEwLjI4ODU1LC00LjQzMjE3IC03LjI4NDk5LC01LjE5ODUyIC0xMC42MjMxNywtMTIuNDEwMzcgLTEwLjYzNjk1LC0yMi45ODA0NSAtMC4wMTE3LC04Ljk5ODkgMi4zMDU3NCwtMTUuMjEzMzEgNy42NjM2NSwtMjAuNTUwNDMgMy40Mzg0NCwtMy40MjUwOSA2LjkzNDA2LC01LjMwMDI0IDExLjgwMzY4LC02LjMzMTc0IDQuMjk4MTMsLTAuOTEwNDEgNy44Nzg2LC0wLjkxNjU4IDEyLjEwNjM3LC0wLjAyMDYgOC4wNzY3NywxLjcxMTQ2IDEyLjY4OTQ2LDYuNTUyIDE1LjA1NDA4LDE1Ljc5NzUzIDEuMjUzMDIsNC44OTkyMyAxLjgwNDU0LDEyLjk5OTU4IDAuOTU0ODIsMTQuMDIzNDUgLTAuNTM0MDIsMC42NDM0OSAtMi44MDg0NSwwLjc0ODU2IC0xNi4yMDU4MywwLjc0ODU2IC0xNy44Mjk4NSwwIC0xNi40NjY5NiwtMC40MzkzNiAtMTQuNTQ3NzksNC42OTAwNSAxLjE5ODAzLDMuMjAyMDUgMy43MzE4LDYuMjIzNzcgNi4zMzAyNCw3LjU0OTM5IDQuMjUzOTgsMi4xNzAyMiAxMi4wNTAwNSwyLjE2NTc0IDE5Ljg4MjMyLC0wLjAxIDUuMzI5NjcsLTEuNDgxNDggNS4wMTczMSwtMS43MjM1OCA1LjAxNzMxLDMuODg4MTQgMCw0LjQ3MDMxIC0wLjA4NTgsNC45MTc2NSAtMS4wNDEyMyw1LjQyODk3IC0zLjk4MTA4LDIuMTMwNTkgLTIwLjQ3NDQ5LDMuNTIxODIgLTI2LjA5MjEyLDIuMjAwODMgeiBtIDE2NS4yNDQ2MiwwLjg2MDc1IGMgLTQuNzc5NzUsLTAuNTg3MTcgLTEwLjgxMzIzLC0xLjc1OTkyIC0xMS4zNTExNywtMi4yMDYzMiAtMC43OTI1LC0wLjY1Nzc1IC0wLjg5OTQ4LC0xMS45NjEyNiAtMC4xMTU4LC0xMi4yMjI1MSAwLjI4MTA0LC0wLjA5MzggMy4wMDU4NiwwLjY0NjkzIDYuMDU1MTYsMS42NDU3OCAxMi4zNDg5MSw0LjA0NTEyIDIxLjQxNzE3LDMuMDM5NSAyNC4xODcwMiwtMi42ODIyMSAyLjc0NjI1LC01LjY3Mjk4IDAuMzI5MjMsLTkuNTM1NzEgLTkuNDE4MDUsLTE1LjA1MTU4IC0xMi4wNjE3LC02LjgyNTUzIC0xNy4zMDU4MiwtMTEuMTkyNTMgLTE5Ljc4MDMzLC0xNi40NzIxNiAtMS4xNjA5MiwtMi40NzY5IC0xLjMxMDI4LC0zLjM4MTczIC0xLjMxMDI4LC03LjkzOTEgMCwtNC43OTYxMSAwLjEwNTI4LC01LjM1NzY3IDEuNTYwMjQsLTguMzExMTYgMy43MzIsLTcuNTc2MzQgMTEuMDYzODcsLTExLjIzNzU2IDIyLjQ5MTg0LC0xMS4yMzEyNyA1LjEwODQ3LDAuMDA2IDEyLjkyMzQzLDAuOTE2ODYgMTYuODI4MDIsMS45NjgyNSBsIDEuODk3NzQsMC41MTA5OSAwLDUuNTc0NTEgYyAwLDMuMTQwNjQgLTAuMjEwNzIsNS43MDQ3NiAtMC40ODI2LDUuODcyODQgLTAuMjY1NDUsMC4xNjQwNiAtMi41OTIzMywtMC4zNzc1NyAtNS4xNzA4MiwtMS4yMDM1NCAtNS41MjU0OCwtMS43Njk5NCAtMTEuMjUxNzEsLTIuNjYwNTggLTE0LjA3OTQyLC0yLjE4OTg5IC02LjMxNjQyLDEuMDUxNDEgLTkuNDU2ODYsNS40ODkwMyAtNy4xOTMzOCwxMC4xNjQ3NCAxLjIxODQsMi41MTY4NiAzLjc4NjUsNC40NDAxIDEyLjUwMzk3LDkuMzY0MTkgMTQuNDk3OTgsOC4xODkyMyAxOC43NzQwNSwxMy4xNDk1NiAxOS4yMTkwOSwyMi4yOTQyNSAwLjU1NDI5LDExLjM4OTk5IC02LjA4MjkxLDE5LjEyOTQgLTE4LjU4NzM0LDIxLjY3NDAzIC0zLjQ2MTE5LDAuNzA0MzYgLTEzLjEwMTU1LDAuOTUwMjUgLTE3LjI1Mzk5LDAuNDQwMTYgeiBtIDIyNC4xODU4NywtMTEuNDQwMTkgYyA0LjA4MzgzLC0yLjA0MDggNi40NjYsLTguMDk5ODkgNi41MjE5MywtMTYuNTg4NzMgMC4wNzA3LC0xMC43MTkyNSAtMi45MzYyMywtMTUuNjQ0NDcgLTkuNTUxMDksLTE1LjY0NDQ3IC0zLjM5Mjg1LDAgLTYuMDYzNDcsMS4zNDkzNCAtOS4xNjgzOSw0LjYzMjMxIGwgLTIuNDk5MTQsMi42NDI1MiAwLDEwLjQ4OTcyIDAsMTAuNDg5NzUgMS43MTc3LDEuNTA4MTYgYyA0LjMwMTc4LDMuNzc3MDMgOC42OTI1LDQuNjEyODcgMTIuOTc4OTksMi40NzA3NCB6IG0gLTI5LjYxMTA2LDI3Ljc3Nzk2IGMgLTAuMTQ2MzUsLTAuNjA1IC0wLjIwNTYzLC0xNi43MTk5OSAtMC4xMzE1NiwtMzUuODExMTQgbCAwLjEzNDg3LC0zNC43MTExNSA3LjMzMzMzLDAgNy4zMzMzNSwwIDAuMTQzMjQsMy41MjcxNCAwLjE0MzIzLDMuNTI3MTEgMy4wMzQ0NywtMy4wODUwNCBjIDQuMTAzNTMsLTQuMTcxOTYgNy4xMzUyOSwtNS4zNzQ5NSAxMy41NDU2MiwtNS4zNzQ5NSA1LjgzMTk2LDAgOS4xMzc4NywxLjE3OTQ0IDEyLjg3MjEsNC41OTIzMSA1LjA5NzMyLDQuNjU4NyA3LjY2MTI2LDExLjgwNTkzIDcuNjYxMjYsMjEuMzU2NzMgMCwxMC44MjUyNyAtMi43NDg4OCwxOC41OTY1NiAtOC40NzE1OCwyMy45NDk4NSAtNC4yNjM2LDMuOTg4NDEgLTcuNzAxOTUsNS4yODQ2OSAtMTQuMDE3MzIsNS4yODQ2OSAtNS4yMjQ5NiwwIC03LjkxMTA0LC0wLjc3ODUxIC0xMS45Nzc4MSwtMy40NzE0NSBsIC0yLjQ0NDQ2LC0xLjYxODcxIC0wLjI2NzE4LDExLjM0NTExIGMgLTAuMTQ2OTQsNi4yMzk3IC0wLjMxMTk1LDExLjQgLTAuMzY2NjUsMTEuNDY3MyAtMC4wNTQ3LDAuMDY3IC0zLjI4NTMxLDAuMTIyNCAtNy4xNzkwNSwwLjEyMjQgLTYuOTM3LDAgLTcuMDg0OTgsLTAuMDIyIC03LjM0NTksLTEuMSB6IE0gMzE4LjA3NzEyLDk4Ni4yNzE1NCBjIDQuMDgzODUsLTIuMDQwOCA2LjQ2NiwtOC4wOTk5IDYuNTIxOTMsLTE2LjU4ODc1IDAuMDcwNywtMTAuNzE5MjQgLTIuOTM2MjEsLTE1LjY0NDQ3IC05LjU1MTA5LC0xNS42NDQ0NyAtMy4zOTI4NCwwIC02LjA2MzQzLDEuMzQ5MzUgLTkuMTY4MzgsNC42MzIzMyBsIC0yLjQ5OTE1LDIuNjQyNSAwLDEwLjQ4OTczIDAsMTAuNDg5NzYgMS43MTc3MiwxLjUwODE3IGMgNC4zMDE3OCwzLjc3NzAxIDguNjkyNDgsNC42MTI4NSAxMi45Nzg5NywyLjQ3MDczIHogbSAtMjkuNjExMDYsMjcuNzc3OTYgYyAtMC4xNDYzNSwtMC42MDUgLTAuMjA1NjQsLTE2LjcyIC0wLjEzMTU2LC0zNS44MTExMyBsIDAuMTM0ODcsLTM0LjcxMTE4IDcuMzMzMzcsMCA3LjMzMzMzLDAgMC4xNDMyNCwzLjUyNzE1IDAuMTQzMjMsMy41MjcxMSAzLjAzNDQ3LC0zLjA4NTAzIGMgNC4xMDM1NSwtNC4xNzE5NSA3LjEzNTI5LC01LjM3NDk3IDEzLjU0NTYyLC01LjM3NDk3IDUuODMxOTYsMCA5LjEzNzg3LDEuMTc5NDcgMTIuODcyMTIsNC41OTIzNCA1LjA5NzMsNC42NTg2OCA3LjY2MTI2LDExLjgwNTkgNy42NjEyNiwyMS4zNTY3IDAsMTAuODI1MjggLTIuNzQ4ODgsMTguNTk2NTYgLTguNDcxNiwyMy45NDk4NSAtNC4yNjM2LDMuOTg4NDQgLTcuNzAxOTUsNS4yODQ3MSAtMTQuMDE3MzQsNS4yODQ3MSAtNS4yMjQ5NiwwIC03LjkxMTAyLC0wLjc3ODUgLTExLjk3NzgxLC0zLjQ3MTQ1IGwgLTIuNDQ0NDQsLTEuNjE4NzIgLTAuMjY3MTYsMTEuMzQ1MTIgYyAtMC4xNDY5NCw2LjIzOTggLTAuMzExOTcsMTEuNDAwMSAtMC4zNjY2NywxMS40NjczIC0wLjA1NDcsMC4wNjcgLTMuMjg1MzEsMC4xMjI0IC03LjE3OTA4LDAuMTIyNCAtNi45MzY5NywwIC03LjA4NDk3LC0wLjAyMiAtNy4zNDU4OSwtMS4xIHoiCiAgICAgICAgIHN0eWxlPSJmaWxsOiNmZjhjMDA7ZmlsbC1vcGFjaXR5OjEiCiAgICAgICAgIGlkPSJwYXRoMzE0OSIKICAgICAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIgLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPgo=" alt="Expert Sleepers">
           <div class="kicker">Manuals</div>
           <a href="https://www.expert-sleepers.co.uk/downloads/manuals/fh2_user_manual_2.0.pdf" target="_blank" rel="noopener">FH-2 user manual (PDF)</a>
           <a href="https://www.expert-sleepers.co.uk/fh2firmware.html" target="_blank" rel="noopener">Firmware &amp; other manuals</a>
@@ -3547,5 +4201,1181 @@ if ( navigator.requestMIDIAccess ) {
 
 </script>
 
-<script src="fh2-studio.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var SECTIONS = {
+    outputs: {
+      title: "FH-2 output configurator",
+      intro: "Each output can receive a generator such as MIDI/CV, clock, trigger, Euclidean pattern, or Direct control. LFO and envelope signals are then added before smoothing is applied, so assigning several sources to one jack stacks their voltages.",
+      tables: ["outs0_table"],
+      checks: ["showfh2outputs"]
+    },
+    mcv: {
+      title: "MIDI/CV converters",
+      intro: "Up to 16 converters turn incoming MIDI notes into CV, gates, triggers, velocity, aftertouch, and related outputs. Enable a converter, choose its type, then set the base output and which per-voice signals it occupies.",
+      tables: ["mcv_table"],
+      checks: ["conv_lbl"]
+    },
+    env: {
+      title: "Portamento, transpose, envelopes",
+      intro: "These controls sit on top of the MIDI/CV converters: portamento, per-converter transpose, and envelope shapes that can be routed as extra outputs.",
+      tables: ["env_table"],
+      checks: ["env_lbl"]
+    },
+    arp: {
+      title: "Arpeggiators",
+      intro: "Each arpeggiator is driven by a MIDI/CV converter. Map MIDI CCs to rate, gate, octaves and similar parameters here.",
+      tables: ["arp_table"],
+      checks: ["arp_lbl"]
+    },
+    clocks: {
+      title: "Clocks",
+      intro: "Clock outputs generate tempo-related gates and run/stop signals. A clock only occupies a jack when its type is set to something other than --.",
+      tables: ["clk_table"],
+      checks: ["clock_lbl"]
+    },
+    triggers: {
+      title: "Triggers / gates",
+      intro: "Triggers fire from MIDI notes. Like clocks, they only occupy an output once a type is selected.",
+      tables: ["trg_table"],
+      checks: ["trig_lbl"]
+    },
+    euc: {
+      title: "Euclidean patterns",
+      intro: "Sixteen Euclidean rhythm generators. Output and Off output choose the jacks that receive pulses and the inverted off-beats.",
+      tables: ["euc_table"],
+      checks: ["euc_lbl"]
+    },
+    seq: {
+      title: "Sequencers",
+      intro: "Note and drum sequencers output MIDI internally or to USB/DIN. They do not directly seize CV jacks unless you route that MIDI back through a converter.",
+      tables: ["seq_table", "seqm_table"],
+      checks: ["sq_lbl"]
+    },
+    srr: {
+      title: "Shift register random",
+      intro: "Turing-machine style random CV, change gates, and triggers. Each row can occupy up to three jacks.",
+      tables: ["srr_table"],
+      checks: ["srr_lbl"]
+    },
+    inputs: {
+      title: "Inputs X & Y (CV/MIDI)",
+      intro: "The X and Y jacks are inputs, not outputs. Enabling CV/MIDI on an input generates MIDI from incoming CV and disables that jack as a clock input.",
+      tables: ["cvm_table"],
+      checks: ["cvm_lbl"]
+    },
+    hid: {
+      title: "HID gamepad & keyboard",
+      intro: "Map gamepad axes/buttons and HID keys onto FH-2 outputs. A row only occupies a jack when a usage or key is selected.",
+      tables: ["hid_table", "kbd_table"],
+      checks: ["hid_lbl", "kbd_lbl"]
+    },
+    globals: {
+      title: "Globals",
+      intro: "Machine-wide settings: transpose, trigger length, external clock, tap tempo, start/stop, swing, and display behaviour.",
+      tables: ["glb_table", "glb_table2"],
+      checks: ["glb_lbl"]
+    }
+  };
+
+  var ALL_TABLES = ["glb_table", "glb_table2", "mcv_table", "env_table", "arp_table", "clk_table", "trg_table", "euc_table", "srr_table", "seq_table", "seqm_table", "hid_table", "kbd_table", "cvm_table", "outs0_table", "outs1_table", "outs2_table", "outs3_table", "outs4_table", "outs5_table", "outs6_table", "outs7_table"];
+
+  var HELP = {
+    "output-bank": ["Device / expander", "The FH-2 is the main module (jacks 1–8). FHX-8CV units are expanders (jacks n/1–n/8). Occupancy and the output mapping table follow whichever you select."],
+    midiinput: ["MIDI input", "Port used when getting the current configuration from the FH-2 (SysEx dump)."],
+    midioutput: ["MIDI output", "Port used when sending this configuration to the FH-2 over SysEx."],
+    "btn-load-config": ["Load File", "Opens a .syx file from disk and applies it in the editor. This does not send it to the FH-2 until you click Send to FH-2."],
+    "btn-save-config": ["Save to File", "Downloads the current editor state as a .syx file. Same format as the original tool."],
+    rng_: ["Output range", "Sets the voltage range for this output: 0–10V, ±5V, 0–1V, 0–5V, or 0–8V."],
+    out_DC_: ["Direct control", "Maps a MIDI channel and CC directly to this output's voltage. Combined with any MIDI/CV, clock, trigger, envelope, or LFO already assigned to the same jack."],
+    out_LFO_: ["LFO speed", "Maps MIDI to the free-running LFO rate for this output."],
+    out_CLK_: ["LFO base", "Selects the tempo base used when the LFO is synchronized."],
+    out_CLKM_: ["LFO multiplier", "Multiplies or divides the tempo-based LFO rate."],
+    out_MLT_: ["LFO level", "Maps MIDI to LFO output level."],
+    out_SIN_: ["LFO sine", "Maps MIDI to the sine component of this output's LFO."],
+    out_SQR_: ["LFO square", "Maps MIDI to the square component of this output's LFO."],
+    out_PW_: ["LFO pulse width", "Maps MIDI to pulse-width of the square component."],
+    out_TRI_: ["LFO triangle", "Maps MIDI to the triangle component."],
+    out_SAW_: ["LFO saw", "Maps MIDI to the saw component."],
+    out_RND_: ["LFO random", "Maps MIDI to the random component."],
+    out_NSE_: ["LFO noise", "Maps MIDI to the noise component."],
+    out_PHS_: ["LFO phase", "Offsets LFO phase."],
+    out_FAD_: ["LFO fade", "Maps MIDI to LFO fade time."],
+    out_SMO_: ["Smoothing", "Applies smoothing after generators and LFO signals are combined on this output."],
+    lfotrig_: ["LFO reset", "Controls how and when the LFO resets: off, CC, note, clock, Euclidean, or from a MIDI/CV converter."],
+    out_gt_: ["Gate levels", "Numeric codes for the low and high voltages used when this output acts as a gate."],
+    mcv_enable_: ["Enable converter", "Turns this MIDI/CV converter on. Disabled converters occupy no outputs."],
+    mcv_ch_: ["MIDI channel", "Channel the converter listens on. For MPE this is the master channel."],
+    mcv_min_: ["Note range (min)", "Lowest MIDI note number this converter will respond to."],
+    mcv_max_: ["Note range (max)", "Highest MIDI note number this converter will respond to."],
+    mcv_type_: ["Converter type", "Mono, polyphonic, or MPE. Poly and MPE spread per-voice outputs using Voices and Stride."],
+    mcv_base_: ["Base output", "The first jack this converter uses. Enabled per-voice signals occupy consecutive jacks from here: if CV and Gate are on and base is 3, CV is on 3 and Gate is on 4."],
+    mcv_basegate_: ["Base gate", "Optional FHX-8GT gate output for this converter."],
+    mcv_VC_: ["CV (pitch)", "Per-voice pitch CV. Occupies the base output jack first."],
+    mcv_VG_: ["Gate", "Per-voice gate. Occupies the next jack after CV (so base 3 with CV+Gate puts Gate on 4)."],
+    mcv_VVG_: ["Velocity gate", "Per-voice gate whose level follows velocity."],
+    mcv_VV_: ["Velocity", "Per-voice velocity CV. On or inverted."],
+    mcv_VR_: ["Release velocity", "Per-voice release-velocity CV."],
+    mcv_VT_: ["Trigger", "Per-voice trigger pulse on note-on."],
+    mcv_VE_: ["Envelope", "Per-voice envelope CV from the envelope section."],
+    mcv_VP_: ["MPE aftertouch", "Per-voice channel pressure (MPE)."],
+    mcv_VRND_: ["Random", "Per-voice random CV."],
+    mcv_VY_: ["MPE Y", "Per-voice CC used as the MPE Y axis. -- disables it."],
+    mcv_G_: ["Paraphonic gate", "One shared gate for all voices, placed after the per-voice outputs."],
+    mcv_A_: ["Paraphonic aftertouch", "One shared aftertouch CV after the per-voice outputs."],
+    mcv_PB_: ["Pitch bend output", "Optional extra jack(s) for pitch bend (single or double)."],
+    mcv_stride_: ["Stride", "Spacing between per-voice output sets. With CV+gate and base 1, stride 2 gives 1/2, 3/4; stride 3 gives 1/2, 4/5, 7/8."],
+    mcv_voices_: ["Voices", "How many polyphonic voices this converter allocates (poly/MPE)."],
+    mcv_scheme_: ["Voice allocation", "How new notes choose a voice: round robin, lowest, unison, note range, alternating, or random."],
+    clk_: ["Clock", "A clock occupies its chosen output only when Type is not --. Types include clock, run/stop, and start/stop triggers."],
+    trg_: ["Trigger", "A trigger occupies its chosen output only when Type is not --."],
+    euc_output_: ["Euclidean output", "Jack that receives Euclidean pulses for this pattern."],
+    euc_offoutput_: ["Euclidean off output", "Jack that receives the inverted (off-beat) pattern."],
+    srr_output_: ["Random CV", "Shift-register random CV jack."],
+    srr_change_: ["Random change", "Gate that fires when the random value changes."],
+    srr_trigger_: ["Random trigger", "Trigger output from this random generator."],
+    cvm_en_: ["Enable CV/MIDI", "When enabled, this input converts CV to MIDI and can no longer be used as a clock input."],
+    cvm_type_: ["CV/MIDI type", "CC, trigger, note, program change, or aftertouch generated from the incoming CV."],
+    cvm_ch_: ["CV/MIDI channel", "MIDI channel for messages generated from this input."],
+    cvm_cc_: ["CC or note", "Controller number or base note associated with this conversion."],
+    cvm_0v_: ["0V level", "Input code that corresponds to 0V. Start around 0 and calibrate with Test inputs if needed."],
+    cvm_5v_: ["5V level", "Input code that corresponds to 5V. A typical starting point is 4096."],
+    cvm_out: ["MIDI destination", "Where generated MIDI is sent: Internal (into the FH-2 converters), USB A, USB C, DIN, or Select Bus."],
+    hid_: ["HID mapping", "Gamepad axis or button mapped onto an output. Occupies a jack only when Usage is not --."],
+    kbd_: ["HID keyboard", "Key press mapped onto an output."],
+    glb_: ["Global setting", "Applies to the whole FH-2, not a single converter or jack."],
+    "btn-clear": ["Reset row", "Resets this row to the tool's starting defaults. Euclidean Output/Off output and SR Random CV are set to None."]
+  };
+
+  var currentSection = "outputs";
+  var occupancyPaused = false;
+  var selectedOccupancy = null;
+  var jackSources = [];
+  var allJackSources = [];
+  var inputSources = { X: [], Y: [] };
+
+  function currentBank() {
+    var bank = el("output-bank");
+    var b = bank ? Number(bank.value) : 0;
+    return isNaN(b) ? 0 : b;
+  }
+
+  function jackNum(globalIndex) {
+    if (globalIndex < 8) return String(globalIndex + 1);
+    return Math.floor(globalIndex / 8) + "/" + ((globalIndex % 8) + 1);
+  }
+
+  function jackLabel(globalIndex) {
+    if (globalIndex < 8) return "OUT " + (globalIndex + 1);
+    return Math.floor(globalIndex / 8) + "/" + ((globalIndex % 8) + 1);
+  }
+
+  function bankTitle(bank) {
+    return bank === 0 ? "FH-2 (main module)" : ("FHX-8CV expander " + bank);
+  }
+
+  function bankOptionLabel(bank) {
+    return bank === 0 ? "FH-2 (main module)" : ("FHX-8CV " + bank + " (expander)");
+  }
+
+  function el(id) { return document.getElementById(id); }
+  function val(id) {
+    var n = el(id);
+    return n ? n.value : "";
+  }
+  function isChecked(id) {
+    var n = el(id);
+    return !!(n && n.checked);
+  }
+  function num(id) {
+    var v = val(id);
+    if (v === "" || v == null) return NaN;
+    return Number(v);
+  }
+
+  function rowControls(tr) {
+    var list = [];
+    var table = tr.parentElement && tr.parentElement.closest ? tr.closest("table") : null;
+    [].forEach.call(tr.children, function (cell) {
+      [].forEach.call(cell.querySelectorAll("input, select, textarea"), function (node) {
+        if (node.type === "button" || node.classList.contains("btn-clear")) return;
+        if (table && node.closest("table") !== table) return;
+        list.push(node);
+      });
+    });
+    return list;
+  }
+
+  function snapshotRow(tr) {
+    return rowControls(tr).map(function (node) {
+      return {
+        el: node,
+        value: node.value,
+        checked: !!node.checked,
+        display: node.style.display
+      };
+    });
+  }
+
+  function restoreRow(tr, opts) {
+    opts = opts || {};
+    var snap = tr._fh2Defaults;
+    if (!snap) return;
+    snap.forEach(function (s) {
+      if (!s.el) return;
+      if (s.el.type === "checkbox" || s.el.type === "radio") s.el.checked = s.checked;
+      else s.el.value = s.value;
+      s.el.style.display = s.display;
+    });
+    snap.forEach(function (s) {
+      if (!s.el) return;
+      if (typeof s.el.onchange === "function") {
+        try { s.el.onchange(); } catch (err) {}
+      } else {
+        s.el.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    });
+    forceOutputsNone(tr);
+    if (!opts.silent) refreshOccupancy();
+  }
+
+  function forceOutputsNone(tr) {
+    var eucOut = tr.querySelector("[id^='euc_output_']");
+    var eucOff = tr.querySelector("[id^='euc_offoutput_']");
+    if (eucOut) eucOut.value = "-1";
+    if (eucOff) eucOff.value = "-1";
+    var srrCv = tr.querySelector("[id^='srr_output_']");
+    if (srrCv) srrCv.value = "-1";
+  }
+
+  function resetAllConfirmMessage() {
+    if (currentSection === "outputs") {
+      return "This will reset all settings on this page for every output on the current device. Are you sure?";
+    }
+    if (currentSection === "mcv") {
+      return "This will reset all MIDI/CV converters on this page. Are you sure?";
+    }
+    if (currentSection === "euc") {
+      return "This will reset every Euclidean pattern on this page and set Output / Off output to None. Are you sure?";
+    }
+    if (currentSection === "srr") {
+      return "This will reset every SR Random generator on this page and set CV to None. Are you sure?";
+    }
+    if (currentSection === "clocks") {
+      return "This will reset all clocks on this page. Are you sure?";
+    }
+    if (currentSection === "triggers") {
+      return "This will reset all triggers on this page. Are you sure?";
+    }
+    return "This will reset all settings on this page. Are you sure?";
+  }
+
+  function resetAllVisibleRows() {
+    if (currentSection === "globals") return;
+    if (!window.confirm(resetAllConfirmMessage())) return;
+    occupancyPaused = true;
+    sectionTables(currentSection).forEach(function (id) {
+      var table = el(id);
+      if (!table) return;
+      [].forEach.call(table.querySelectorAll("tr"), function (tr) {
+        if (tr._fh2Defaults) restoreRow(tr, { silent: true });
+      });
+    });
+    occupancyPaused = false;
+    refreshOccupancy();
+    var resetHelp = "Every row on this page is back to its starting defaults.";
+    if (currentSection === "euc") resetHelp = "Every Euclidean pattern now has Output and Off output set to None, so they occupy no jacks.";
+    else if (currentSection === "srr") resetHelp = "Every SR Random generator now has CV set to None, so they occupy no jacks.";
+    setHelp("Reset all", resetHelp);
+  }
+
+  function sectionTables(name) {
+    if (name === "outputs") return ["outs" + currentBank() + "_table"];
+    var spec = SECTIONS[name];
+    return spec ? spec.tables.slice() : [];
+  }
+
+  function ensureResetAll() {
+    if (el("reset-all")) return;
+    var intro = el("section-intro");
+    if (!intro) return;
+    var bar = document.createElement("div");
+    bar.id = "section-actions";
+    bar.className = "section-actions";
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "reset-all";
+    btn.className = "btn-clear-all";
+    btn.textContent = "Reset all";
+    btn.title = "Reset every row on this page to defaults";
+    btn.addEventListener("click", resetAllVisibleRows);
+    bar.appendChild(btn);
+    intro.insertAdjacentElement("afterend", bar);
+  }
+
+  function addClearButtons() {
+    var skip = { glb_table: true, glb_table2: true };
+    document.querySelectorAll("#config-main .config-scroll > table").forEach(function (table) {
+      if (skip[table.id]) return;
+      var rows = table.querySelectorAll(":scope > tbody > tr, :scope > tr");
+      [].forEach.call(rows, function (tr) {
+        var controls = rowControls(tr);
+        if (!controls.length) return;
+        if (tr.querySelector(".btn-clear")) return;
+        tr._fh2Defaults = snapshotRow(tr);
+        var cell = tr.children[0];
+        if (!cell) return;
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn-clear";
+        btn.textContent = "Reset";
+        btn.title = "Reset this row to defaults";
+        btn.setAttribute("aria-label", "Reset row");
+        btn.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          restoreRow(tr);
+          var rowHelp = "This row is back to its starting defaults. Other rows are unchanged.";
+          if (tr.querySelector("[id^='euc_output_']")) rowHelp = "This Euclidean pattern's Output and Off output are None. Other rows are unchanged.";
+          else if (tr.querySelector("[id^='srr_output_']")) rowHelp = "This SR Random generator's CV is None. Other rows are unchanged.";
+          setHelp("Reset row", rowHelp);
+        });
+        cell.appendChild(btn);
+      });
+    });
+  }
+
+  function wrapTables() {
+    var main = el("config-main");
+    if (!main) return;
+    var tables = [].slice.call(main.querySelectorAll(":scope > table"));
+    tables.forEach(function (table) {
+      if (table.parentElement.classList.contains("config-scroll")) return;
+      var wrap = document.createElement("div");
+      wrap.className = "config-scroll";
+      wrap.dataset.table = table.id || "";
+      main.insertBefore(wrap, table);
+      wrap.appendChild(table);
+    });
+  }
+
+  function showHideTable(id, show) {
+    var table = el(id);
+    if (!table) return;
+    table.style.display = show ? "table" : "none";
+    var wrap = table.closest(".config-scroll");
+    if (wrap) wrap.style.display = show ? "block" : "none";
+  }
+
+  window.showHide = function (id, show) {
+    showHideTable(id, show);
+  };
+
+  function showSection(name, opts) {
+    opts = opts || {};
+    var spec = SECTIONS[name];
+    if (!spec) return;
+    currentSection = name;
+
+    ALL_TABLES.forEach(function (id) { showHideTable(id, false); });
+
+    Object.keys(SECTIONS).forEach(function (key) {
+      SECTIONS[key].checks.forEach(function (cid) {
+        var cb = el(cid);
+        if (cb) cb.checked = key === name;
+      });
+    });
+
+    for (var i = 1; i < 8; i++) {
+      var exp = el("show8cvoutputs" + i);
+      if (exp) exp.checked = false;
+      showHideTable("outs" + i + "_table", false);
+    }
+
+    var tables = spec.tables.slice();
+    if (name === "outputs") {
+      var bank = el("output-bank");
+      var b = bank ? Number(bank.value) : 0;
+      tables = ["outs" + b + "_table"];
+      if (b === 0) {
+        var fh2 = el("showfh2outputs");
+        if (fh2) fh2.checked = true;
+      } else {
+        var ex = el("show8cvoutputs" + b);
+        if (ex) ex.checked = true;
+      }
+    }
+
+    tables.forEach(function (id) { showHideTable(id, true); });
+    spec.checks.forEach(function (cid) {
+      var cb = el(cid);
+      if (cb) cb.checked = true;
+    });
+
+    document.querySelectorAll(".studio-nav button[data-section]").forEach(function (btn) {
+      btn.classList.toggle("is-on", btn.getAttribute("data-section") === name);
+    });
+
+    var intro = el("section-intro");
+    if (intro) {
+      var title = spec.title;
+      if (name === "outputs") title = bankTitle(currentBank()) + " output configurator";
+      intro.innerHTML = "<h1>" + title + "</h1><p>" + spec.intro + "</p>";
+    }
+    var bankRow = el("bank-row");
+    if (bankRow) bankRow.hidden = name !== "outputs";
+    var actions = el("section-actions");
+    if (actions) actions.hidden = name === "globals";
+    renderJacks();
+
+    if (!opts.keepHelp) {
+      selectedOccupancy = null;
+      document.querySelectorAll(".jack").forEach(function (j) {
+        j.classList.remove("is-on", "is-related");
+      });
+      clearRowHighlight();
+      setHelp(name === "outputs" ? (bankTitle(currentBank()) + " outputs") : spec.title, spec.intro);
+    } else {
+      applyOccupancyHighlight();
+    }
+    if (!opts.keepHelp && !opts.noScroll) {
+      var occ = document.querySelector(".occupancy");
+      if (occ) occ.scrollIntoView({ block: "start" });
+    }
+  }
+
+  function chipClass(kind) {
+    if (kind === "cv" || kind === "pitch") return "chip-cv";
+    if (kind === "gate" || kind === "trig") return "chip-gate";
+    if (kind === "clock") return "chip-clock";
+    if (kind === "lfo") return "chip-lfo";
+    if (kind === "direct") return "chip-direct";
+    if (kind === "euc") return "chip-euc";
+    if (kind === "srr") return "chip-srr";
+    if (kind === "hid") return "chip-hid";
+    if (kind === "in") return "chip-in";
+    return "";
+  }
+
+  function addOut(map, output, source) {
+    var n = Number(output);
+    if (isNaN(n) || n < 0 || n > 63) return;
+    if (!map[n]) map[n] = [];
+    map[n].push(source);
+  }
+
+  function mappingOn(prefix, index) {
+    var ch = el(prefix + "_ch_" + index);
+    if (!ch) return false;
+    var v = Number(ch.value);
+    return !isNaN(v) && v > 0;
+  }
+
+  var NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+  function noteName(n) {
+    n = Number(n);
+    if (isNaN(n) || n < 0 || n > 127) return "";
+    return NOTE_NAMES[n % 12] + (Math.floor(n / 12) - 1);
+  }
+
+  function midiJoin(parts) {
+    return parts.filter(Boolean).join(" · ");
+  }
+
+  function midiChannelText(id) {
+    var ch = num(id);
+    if (isNaN(ch) || ch < 1) return "";
+    return "ch" + ch;
+  }
+
+  function mappingMidi(prefix, index) {
+    if (!mappingOn(prefix, index)) return "";
+    var cc = num(prefix + "_cc_" + index);
+    var bits = [midiChannelText(prefix + "_ch_" + index)];
+    if (!isNaN(cc) && cc >= 0) bits.push("CC" + cc);
+    return midiJoin(bits);
+  }
+
+  function firstMappingMidi(prefixes, index) {
+    for (var i = 0; i < prefixes.length; i++) {
+      var text = mappingMidi(prefixes[i], index);
+      if (text) return text;
+    }
+    return "";
+  }
+
+  function mcvMidi(m) {
+    var min = num("mcv_min_" + m);
+    var max = num("mcv_max_" + m);
+    var range = "";
+    if (!isNaN(min) && !isNaN(max) && !(min === 0 && max === 127)) {
+      range = min === max ? noteName(min) : (noteName(min) + "–" + noteName(max));
+    }
+    return midiJoin([midiChannelText("mcv_ch_" + m), range]);
+  }
+
+  function source(kind, label, midi, meta) {
+    meta = meta || {};
+    return {
+      kind: kind,
+      label: label,
+      midi: midi || "",
+      key: meta.key || "",
+      rowId: meta.rowId || "",
+      section: meta.section || "",
+      base: meta.base,
+      role: meta.role || ""
+    };
+  }
+
+  function unique(list) {
+    var out = [];
+    list.forEach(function (item) {
+      if (item && out.indexOf(item) < 0) out.push(item);
+    });
+    return out;
+  }
+
+  function keysOnJack(globalIndex) {
+    return unique((allJackSources[globalIndex] || []).map(function (s) { return s.key; }));
+  }
+
+  function jackHasKey(globalIndex, keys) {
+    if (!keys || !keys.length) return false;
+    var list = allJackSources[globalIndex] || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].key && keys.indexOf(list[i].key) >= 0) return true;
+    }
+    return false;
+  }
+
+  function relatedJackIndexes(keys) {
+    var out = [];
+    if (!keys || !keys.length) return out;
+    for (var i = 0; i < 64; i++) {
+      if (jackHasKey(i, keys)) out.push(i);
+    }
+    return out;
+  }
+
+  function primarySection(src) {
+    var rank = { mcv: 1, clocks: 2, triggers: 3, euc: 4, srr: 5, hid: 6, outputs: 9, inputs: 10 };
+    var best = "outputs";
+    var bestRank = 99;
+    (src || []).forEach(function (s) {
+      var r = rank[s.section] || 99;
+      if (r < bestRank) {
+        bestRank = r;
+        best = s.section;
+      }
+    });
+    return best;
+  }
+
+  function scanMcv(map) {
+    for (var m = 1; m <= 16; m++) {
+      if (!isChecked("mcv_enable_" + m)) continue;
+      var base = num("mcv_base_" + m);
+      if (isNaN(base)) continue;
+      var type = val("mcv_type_" + m);
+      var voices = type === "0" ? 1 : (num("mcv_voices_" + m) || 1);
+      var stride = num("mcv_stride_" + m) || 1;
+      var midi = midiJoin([mcvMidi(m), "base " + jackNum(base)]);
+      var meta = { key: "mcv:" + m, rowId: "mcv_enable_" + m, section: "mcv", base: base };
+      var per = [];
+      if (isChecked("mcv_VC_" + m)) per.push({ kind: "cv", label: "CV " + m, role: "CV" });
+      if (isChecked("mcv_VG_" + m)) per.push({ kind: "gate", label: "Gate " + m, role: "Gate" });
+      if (isChecked("mcv_VVG_" + m)) per.push({ kind: "gate", label: "VelGate " + m, role: "VelGate" });
+      if (num("mcv_VV_" + m) > 0) per.push({ kind: "cv", label: "Vel " + m, role: "Vel" });
+      if (num("mcv_VR_" + m) > 0) per.push({ kind: "cv", label: "RelVel " + m, role: "RelVel" });
+      if (isChecked("mcv_VT_" + m)) per.push({ kind: "trig", label: "Trig " + m, role: "Trig" });
+      if (isChecked("mcv_VE_" + m)) per.push({ kind: "cv", label: "Env " + m, role: "Env" });
+      if (isChecked("mcv_VP_" + m)) per.push({ kind: "cv", label: "Press " + m, role: "Press" });
+      if (isChecked("mcv_VRND_" + m)) per.push({ kind: "cv", label: "Rnd " + m, role: "Rnd" });
+      if (num("mcv_VY_" + m) > 0) per.push({ kind: "cv", label: "MPE Y " + m, role: "MPE Y" });
+
+      var step = type === "0" ? Math.max(per.length, 1) : stride;
+      for (var v = 0; v < voices; v++) {
+        var start = base + v * step;
+        for (var i = 0; i < per.length; i++) {
+          addOut(map, start + i, source(per[i].kind, per[i].label + (voices > 1 ? " v" + (v + 1) : ""), midi, {
+            key: meta.key, rowId: meta.rowId, section: meta.section, base: base, role: per[i].role
+          }));
+        }
+      }
+      var after = base + voices * step;
+      if (isChecked("mcv_G_" + m)) addOut(map, after++, source("gate", "Para gate " + m, midi, { key: meta.key, rowId: meta.rowId, section: "mcv", base: base, role: "Para gate" }));
+      if (isChecked("mcv_A_" + m)) addOut(map, after++, source("cv", "Para AT " + m, midi, { key: meta.key, rowId: meta.rowId, section: "mcv", base: base, role: "Para AT" }));
+      var pb = num("mcv_PB_" + m);
+      if (pb >= 1) addOut(map, after++, source("cv", "Bend " + m, midi, { key: meta.key, rowId: meta.rowId, section: "mcv", base: base, role: "Bend" }));
+      if (pb >= 2) addOut(map, after++, source("cv", "Bend2 " + m, midi, { key: meta.key, rowId: meta.rowId, section: "mcv", base: base, role: "Bend2" }));
+    }
+  }
+
+  function refreshOccupancy() {
+    var map = [];
+    for (var i = 0; i < 64; i++) map[i] = [];
+    scanMcv(map);
+
+    for (var c = 1; c <= 32; c++) {
+      if (num("clk_" + c + "_type") > 0) {
+        addOut(map, num("clk_" + c + "_output"), source("clock", "Clock " + c, "", {
+          key: "clk:" + c, rowId: "clk_" + c + "_output", section: "clocks"
+        }));
+      }
+    }
+    for (var t = 1; t <= 64; t++) {
+      if (num("trg_" + t + "_type") > 0) {
+        var note = num("trg_" + t + "_note");
+        addOut(map, num("trg_" + t + "_output"), source("trig", "Trig " + t, midiJoin([
+          midiChannelText("trg_" + t + "_ch"),
+          (isNaN(note) || note < 0) ? "any" : noteName(note)
+        ]), { key: "trg:" + t, rowId: "trg_" + t + "_output", section: "triggers" }));
+      }
+    }
+    for (var e = 1; e <= 16; e++) {
+      var eucMeta = { key: "euc:" + e, rowId: "euc_output_" + e, section: "euc" };
+      addOut(map, num("euc_output_" + e), source("euc", "Euc " + e, "", eucMeta));
+      addOut(map, num("euc_offoutput_" + e), source("euc", "Euc " + e + " off", "", eucMeta));
+    }
+    for (var s = 1; s <= 16; s++) {
+      var srrMidi = midiChannelText("srr_nch_" + s);
+      var srrMeta = { key: "srr:" + s, rowId: "srr_output_" + s, section: "srr" };
+      addOut(map, num("srr_output_" + s), source("srr", "SRR CV " + s, srrMidi, srrMeta));
+      addOut(map, num("srr_change_" + s), source("srr", "SRR Δ " + s, srrMidi, srrMeta));
+      addOut(map, num("srr_trigger_" + s), source("srr", "SRR trig " + s, srrMidi, srrMeta));
+    }
+    var lfoMaps = ["out_LFO", "out_MLT", "out_SIN", "out_SQR", "out_TRI", "out_SAW", "out_RND", "out_NSE"];
+    for (var o = 0; o < 64; o++) {
+      if (mappingOn("out_DC", o)) {
+        addOut(map, o, source("direct", "Direct", mappingMidi("out_DC", o), {
+          key: "direct:" + o, rowId: "out_DC_ch_" + o, section: "outputs"
+        }));
+      }
+      var lfoMidi = firstMappingMidi(lfoMaps, o);
+      if (lfoMidi) {
+        addOut(map, o, source("lfo", "LFO", lfoMidi, {
+          key: "lfo:" + o, rowId: "out_LFO_ch_" + o, section: "outputs"
+        }));
+      }
+    }
+    for (var h = 1; h <= 32; h++) {
+      if (num("hid_" + h + "_usage") > 0) {
+        addOut(map, num("hid_" + h + "_output"), source("hid", "HID " + h, "", {
+          key: "hid:" + h, rowId: "hid_" + h + "_usage", section: "hid"
+        }));
+      }
+    }
+    for (var k = 1; k <= 32; k++) {
+      var keyEl = el("kbd_" + k + "_key");
+      if (keyEl && keyEl.value && num("kbd_" + k + "_type") > 0) {
+        addOut(map, num("kbd_" + k + "_output"), source("hid", "Key " + k, "", {
+          key: "kbd:" + k, rowId: "kbd_" + k + "_key", section: "hid"
+        }));
+      }
+    }
+
+    allJackSources = map;
+    renderJacks();
+    renderInputs();
+    updateNavCounts();
+    markBusyBanks();
+  }
+
+  window.refreshOccupancy = refreshOccupancy;
+
+  function sourceLabel(s) {
+    return s.midi ? (s.label + " (" + s.midi + ")") : s.label;
+  }
+
+  function chipHtml(s) {
+    var html = "<span class='chip " + chipClass(s.kind) + "'><span class='chip-name'>" + s.label + "</span>";
+    if (s.midi) html += "<span class='chip-midi'>" + s.midi + "</span>";
+    html += "</span>";
+    return html;
+  }
+
+  function renderJacks() {
+    var bank = currentBank();
+    var base = bank * 8;
+    jackSources = [];
+    var cap = el("occupancy-caption");
+    if (cap) {
+      cap.textContent = bank === 0
+        ? "Main module · jacks 1–8"
+        : ("Expander " + bank + " · jacks " + bank + "/1–" + bank + "/8");
+    }
+    for (var i = 0; i < 8; i++) {
+      var btn = el("jack-" + i);
+      if (!btn) continue;
+      var globalIndex = base + i;
+      var src = (allJackSources[globalIndex] || []).slice();
+      jackSources[i] = src;
+      btn.dataset.output = String(globalIndex);
+      var keys = selectedOccupancy && selectedOccupancy.keys ? selectedOccupancy.keys : [];
+      var isOn = !!(selectedOccupancy && selectedOccupancy.type === "out" && selectedOccupancy.slot === i);
+      var isRelated = !isOn && jackHasKey(globalIndex, keys);
+      btn.classList.toggle("is-stack", src.length === 2);
+      btn.classList.toggle("is-triple", src.length >= 3);
+      btn.classList.toggle("is-on", isOn);
+      btn.classList.toggle("is-related", isRelated);
+      var html = "<span class='jack-id'>" + jackLabel(globalIndex) + "</span>";
+      if (src.length >= 2) html += "<span class='badge'>" + src.length + "</span>";
+      if (!src.length) {
+        html += "<span class='empty'>Empty</span>";
+      } else {
+        html += "<span class='chips'>";
+        src.forEach(function (s) {
+          html += chipHtml(s);
+        });
+        html += "</span>";
+      }
+      btn.innerHTML = html;
+    }
+  }
+
+  function markBusyBanks() {
+    var bank = el("output-bank");
+    if (!bank) return;
+    for (var b = 0; b < 8; b++) {
+      var opt = bank.options[b];
+      if (!opt) continue;
+      var used = 0;
+      var stacked = 0;
+      for (var i = 0; i < 8; i++) {
+        var n = (allJackSources[b * 8 + i] || []).length;
+        if (n) used++;
+        if (n >= 2) stacked++;
+      }
+      var baseLabel = bankOptionLabel(b);
+      if (stacked) opt.text = baseLabel + " · " + stacked + " stacked";
+      else if (used) opt.text = baseLabel + " · " + used + " used";
+      else opt.text = baseLabel;
+    }
+  }
+
+  function renderInputs() {
+    inputSources = { X: [], Y: [] };
+    ["X", "Y"].forEach(function (name, i) {
+      var btn = el("jack-" + name);
+      if (!btn) return;
+      var src = [];
+      if (isChecked("cvm_en_" + i)) {
+        var typeEl = el("cvm_type_" + i);
+        var typeName = typeEl && typeEl.options[typeEl.selectedIndex] ? typeEl.options[typeEl.selectedIndex].text : "CV/MIDI";
+        var type = num("cvm_type_" + i);
+        var cc = num("cvm_cc_" + i);
+        var spec = "";
+        if (type === 0 && cc >= 0) spec = "CC" + cc;
+        else if ((type === 1 || type === 2) && cc >= 0) spec = noteName(cc);
+        else if (type === 3) spec = "PC";
+        else if (type === 4) spec = "AT";
+        src.push(source("in", typeName, midiJoin([midiChannelText("cvm_ch_" + i), spec])));
+      }
+      inputSources[name] = src;
+      var html = "<span class='jack-id'>IN " + name + "</span>";
+      if (!src.length) html += "<span class='empty'>Input</span>";
+      else {
+        html += "<span class='chips'>";
+        src.forEach(function (s) {
+          html += chipHtml(s);
+        });
+        html += "</span>";
+      }
+      btn.classList.toggle("is-on", !!(selectedOccupancy && selectedOccupancy.type === "in" && selectedOccupancy.name === name));
+      btn.innerHTML = html;
+    });
+  }
+
+  function updateNavCounts() {
+    function setCount(section, n) {
+      var btn = document.querySelector('.studio-nav button[data-section="' + section + '"] .count');
+      if (btn) btn.textContent = n;
+    }
+    var mcv = 0;
+    for (var m = 1; m <= 16; m++) if (isChecked("mcv_enable_" + m)) mcv++;
+    setCount("mcv", mcv);
+    var clk = 0;
+    for (var c = 1; c <= 32; c++) if (num("clk_" + c + "_type") > 0) clk++;
+    setCount("clocks", clk);
+    var trg = 0;
+    for (var t = 1; t <= 64; t++) if (num("trg_" + t + "_type") > 0) trg++;
+    setCount("triggers", trg);
+    var euc = 0;
+    for (var e = 1; e <= 16; e++) if (num("euc_output_" + e) >= 0) euc++;
+    setCount("euc", euc);
+    var srr = 0;
+    for (var s = 1; s <= 16; s++) if (num("srr_output_" + s) >= 0) srr++;
+    setCount("srr", srr);
+    var ins = (isChecked("cvm_en_0") ? 1 : 0) + (isChecked("cvm_en_1") ? 1 : 0);
+    setCount("inputs", ins);
+    var hid = 0;
+    for (var h = 1; h <= 32; h++) if (num("hid_" + h + "_usage") > 0) hid++;
+    setCount("hid", hid);
+    var used = 0;
+    (allJackSources || []).forEach(function (list) { if (list && list.length) used++; });
+    setCount("outputs", used);
+  }
+
+  function helpForId(id) {
+    if (!id) return null;
+    if (HELP[id]) return HELP[id];
+    var keys = Object.keys(HELP).sort(function (a, b) { return b.length - a.length; });
+    for (var i = 0; i < keys.length; i++) {
+      if (id.indexOf(keys[i]) === 0) return HELP[keys[i]];
+    }
+    var lab = document.querySelector("label[for='" + id + "']");
+    if (lab && lab.textContent) return [lab.textContent, "This control is part of the FH-2 configuration sent over SysEx. Use the Manual PDF for the full parameter list."];
+    return null;
+  }
+
+  function setHelp(title, body, warning) {
+    var card = el("help-card");
+    if (!card) return;
+    card.innerHTML = "<div class='help-kicker'>Selected field</div><h3></h3><p></p>";
+    card.querySelector("h3").textContent = title;
+    card.querySelector("p").textContent = body;
+    var warn = el("help-warn");
+    if (!warn) return;
+    if (warning) {
+      warn.hidden = false;
+      warn.innerHTML = warning;
+    } else {
+      warn.hidden = true;
+      warn.innerHTML = "";
+    }
+  }
+
+  function rowOf(id) {
+    var n = el(id);
+    return n ? n.closest("tr") : null;
+  }
+
+  function clearRowHighlight() {
+    document.querySelectorAll("#config-main tr.is-lit").forEach(function (tr) {
+      tr.classList.remove("is-lit");
+    });
+    document.querySelectorAll("#config-main .is-lit-field").forEach(function (n) {
+      n.classList.remove("is-lit-field");
+    });
+    document.querySelectorAll("#config-main td.is-lit-cell").forEach(function (n) {
+      n.classList.remove("is-lit-cell");
+    });
+  }
+
+  function footprintNote(keys, currentIndex) {
+    var mcvKeys = (keys || []).filter(function (k) { return k.indexOf("mcv:") === 0; });
+    var bits = [];
+    mcvKeys.forEach(function (key) {
+      var items = [];
+      var base = null;
+      for (var i = 0; i < 64; i++) {
+        (allJackSources[i] || []).forEach(function (s) {
+          if (s.key !== key) return;
+          items.push({ index: i, role: s.role || s.label });
+          if (s.base != null) base = s.base;
+        });
+      }
+      if (!items.length) return;
+      var layout = items.map(function (it) {
+        return it.role + " on " + jackLabel(it.index) + (it.index === currentIndex ? " (this jack)" : "");
+      }).join(", ");
+      bits.push("Base output " + jackNum(base) + ": " + layout + ".");
+    });
+    var other = (keys || []).filter(function (k) { return k.indexOf("mcv:") !== 0; });
+    return (bits.length ? " " + bits.join(" ") : "") + (other.length ? spanNote(other, currentIndex) : "");
+  }
+
+  function applyOccupancyHighlight() {
+    clearRowHighlight();
+    if (!selectedOccupancy) return;
+    var keys = selectedOccupancy.keys || [];
+    var rows = [];
+    if (selectedOccupancy.type === "in") {
+      rows.push(rowOf("cvm_en_" + (selectedOccupancy.name === "Y" ? 1 : 0)));
+    } else if (keys.length) {
+      keys.forEach(function (key) {
+        for (var i = 0; i < 64; i++) {
+          (allJackSources[i] || []).forEach(function (s) {
+            if (s.key === key && s.rowId) rows.push(rowOf(s.rowId));
+          });
+        }
+      });
+    } else if (selectedOccupancy.type === "out") {
+      var gi = currentBank() * 8 + selectedOccupancy.slot;
+      rows.push(rowOf("rng_" + (gi + 1)));
+    }
+    var firstVisible = null;
+    var seen = [];
+    rows.forEach(function (tr) {
+      if (!tr || seen.indexOf(tr) >= 0) return;
+      seen.push(tr);
+      tr.classList.add("is-lit");
+      if (!firstVisible && tr.offsetParent !== null) firstVisible = tr;
+    });
+    keys.forEach(function (key) {
+      if (key.indexOf("mcv:") !== 0) return;
+      var baseEl = el("mcv_base_" + key.split(":")[1]);
+      if (!baseEl) return;
+      baseEl.classList.add("is-lit-field");
+      var cell = baseEl.closest("td");
+      if (cell) cell.classList.add("is-lit-cell");
+    });
+    if (firstVisible) firstVisible.scrollIntoView({ block: "nearest", inline: "nearest" });
+    renderJacks();
+    renderInputs();
+  }
+
+  function spanNote(keys, currentIndex) {
+    var related = relatedJackIndexes(keys);
+    if (related.length < 2) return "";
+    var labels = related.filter(function (n) { return n !== currentIndex; }).map(jackLabel);
+    if (!labels.length) return "";
+    return " Same source also occupies " + labels.join(", ") + ".";
+  }
+
+  function showJackHelp(slot) {
+    var globalIndex = currentBank() * 8 + slot;
+    var src = (allJackSources[globalIndex] || []).slice();
+    var keys = keysOnJack(globalIndex);
+    selectedOccupancy = { type: "out", slot: slot, keys: keys };
+    var title = jackLabel(globalIndex);
+    var body;
+    var warning = "";
+    var extra = footprintNote(keys, globalIndex);
+    if (!src.length) body = "Nothing is assigned to this jack yet.";
+    else if (src.length === 1) body = "Assigned: " + sourceLabel(src[0]) + "." + extra;
+    else {
+      body = src.length + " sources are summed on this jack: " + src.map(sourceLabel).join(", ") + "." + extra;
+      warning = "<h3>" + title + " has " + src.length + " sources</h3><p>These sources are summed. Confirm this is intentional before sending the configuration.</p>";
+    }
+    setHelp(title, body, warning);
+    applyOccupancyHighlight();
+  }
+
+  function showInputHelp(name) {
+    selectedOccupancy = { type: "in", name: name, keys: [] };
+    var src = inputSources[name] || [];
+    var title = "Input " + name;
+    var body = src.length
+      ? ("CV/MIDI is enabled as " + sourceLabel(src[0]) + ". This jack is no longer available as a clock input.")
+      : "This jack is an input. Enable CV/MIDI to generate MIDI from incoming CV, or leave it free for clock duties.";
+    setHelp(title, body);
+    applyOccupancyHighlight();
+  }
+
+  function metaFromRow(tr) {
+    if (!tr) return null;
+    var node;
+    node = tr.querySelector("[id^='mcv_enable_']");
+    if (node) return { keys: ["mcv:" + node.id.replace("mcv_enable_", "")], section: "mcv" };
+    node = tr.querySelector("[id^='clk_'][id$='_output']");
+    if (node) {
+      var clk = node.id.match(/^clk_(\d+)_output$/);
+      if (clk) return { keys: ["clk:" + clk[1]], section: "clocks" };
+    }
+    node = tr.querySelector("[id^='trg_'][id$='_output']");
+    if (node) {
+      var trg = node.id.match(/^trg_(\d+)_output$/);
+      if (trg) return { keys: ["trg:" + trg[1]], section: "triggers" };
+    }
+    node = tr.querySelector("[id^='euc_output_']");
+    if (node) return { keys: ["euc:" + node.id.replace("euc_output_", "")], section: "euc" };
+    node = tr.querySelector("[id^='srr_output_']");
+    if (node) return { keys: ["srr:" + node.id.replace("srr_output_", "")], section: "srr" };
+    node = tr.querySelector("[id^='hid_'][id$='_usage']");
+    if (node) {
+      var hid = node.id.match(/^hid_(\d+)_usage$/);
+      if (hid) return { keys: ["hid:" + hid[1]], section: "hid" };
+    }
+    node = tr.querySelector("[id^='kbd_'][id$='_key']");
+    if (node) {
+      var kbd = node.id.match(/^kbd_(\d+)_key$/);
+      if (kbd) return { keys: ["kbd:" + kbd[1]], section: "hid" };
+    }
+    node = tr.querySelector("[id^='cvm_en_']");
+    if (node) {
+      return { type: "in", name: node.id === "cvm_en_1" ? "Y" : "X", keys: [] };
+    }
+    node = tr.querySelector("[id^='rng_']");
+    if (node) {
+      var gi = Number(node.id.replace("rng_", "")) - 1;
+      if (isNaN(gi) || gi < 0) return null;
+      return {
+        type: "out",
+        slot: gi % 8,
+        keys: keysOnJack(gi)
+      };
+    }
+    return null;
+  }
+
+  function selectFromControl(id) {
+    var node = el(id);
+    if (!node || node.classList.contains("btn-clear")) return;
+    var tr = node.closest("#config-main tr");
+    var meta = metaFromRow(tr);
+    if (!meta) return;
+    if (meta.type === "in") selectedOccupancy = { type: "in", name: meta.name, keys: [] };
+    else if (meta.type === "out") selectedOccupancy = { type: "out", slot: meta.slot, keys: meta.keys || [] };
+    else selectedOccupancy = { type: "source", keys: meta.keys || [] };
+    applyOccupancyHighlight();
+  }
+
+  function patchParse() {
+    if (typeof window.parseConfigDump !== "function") return;
+    var orig = window.parseConfigDump;
+    window.parseConfigDump = function (data) {
+      orig(data);
+      refreshOccupancy();
+    };
+  }
+
+  function pinHeaderHeight() {
+    var header = document.querySelector(".studio-header");
+    if (!header) return;
+    document.documentElement.style.setProperty("--header-h", header.offsetHeight + "px");
+  }
+
+  function init() {
+    wrapTables();
+    addClearButtons();
+    ensureResetAll();
+    patchParse();
+    pinHeaderHeight();
+    window.addEventListener("resize", pinHeaderHeight);
+
+    var theme = el("theme");
+    if (theme && typeof window.changeTheme === "function") {
+      if (localStorage.getItem("fh2Theme") !== "0") {
+        theme.value = 1;
+        window.changeTheme();
+      } else {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    } else {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+    pinHeaderHeight();
+    if (theme) theme.addEventListener("change", function () { pinHeaderHeight(); });
+
+    document.querySelectorAll(".studio-nav button[data-section]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        showSection(btn.getAttribute("data-section"));
+      });
+    });
+    Object.keys(SECTIONS).forEach(function (name) {
+      SECTIONS[name].checks.forEach(function (cid) {
+        var cb = el(cid);
+        if (!cb) return;
+        cb.addEventListener("click", function () {
+          if (cb.checked) showSection(name);
+        });
+      });
+    });
+
+    for (var exp = 1; exp < 8; exp++) {
+      (function (n) {
+        var cb = el("show8cvoutputs" + n);
+        if (!cb) return;
+        cb.addEventListener("click", function () {
+          if (!cb.checked) return;
+          var sel = el("output-bank");
+          if (sel) sel.value = String(n);
+          showSection("outputs");
+        });
+      })(exp);
+    }
+
+    var bank = el("output-bank");
+    if (bank) {
+      bank.addEventListener("change", function () {
+        if (currentSection === "outputs") showSection("outputs", { keepHelp: !!selectedOccupancy });
+        else renderJacks();
+        applyOccupancyHighlight();
+      });
+    }
+
+    for (var i = 0; i < 8; i++) {
+      (function (idx) {
+        var btn = el("jack-" + idx);
+        if (btn) btn.addEventListener("click", function () {
+          showJackHelp(idx);
+          var src = allJackSources[currentBank() * 8 + idx] || [];
+          showSection(primarySection(src), { keepHelp: true });
+        });
+      })(i);
+    }
+    ["X", "Y"].forEach(function (name) {
+      var btn = el("jack-" + name);
+      if (btn) btn.addEventListener("click", function () {
+        showInputHelp(name);
+        showSection("inputs", { keepHelp: true });
+      });
+    });
+
+    document.addEventListener("change", function () {
+      if (occupancyPaused) return;
+      refreshOccupancy();
+    });
+    document.addEventListener("focusin", function (ev) {
+      var t = ev.target;
+      if (!t || !t.id) return;
+      if (t.id === "theme" || t.id === "output-bank") return;
+      selectFromControl(t.id);
+      var info = helpForId(t.id);
+      if (info) setHelp(info[0], info[1]);
+    });
+
+    wireConfigFiles();
+    showSection("outputs", { noScroll: true });
+    refreshOccupancy();
+  }
+
+  function wireConfigFiles() {
+    var loadBtn = el("btn-load-config");
+    var saveBtn = el("btn-save-config");
+    var file = el("chooseConfig");
+    if (loadBtn && file) {
+      loadBtn.addEventListener("click", function () {
+        if (typeof chosenConfig !== "undefined") chosenConfig = [];
+        file.value = "";
+        file.click();
+      });
+      file.addEventListener("change", function () {
+        var n = 0;
+        var t = setInterval(function () {
+          n++;
+          if (typeof chosenConfig !== "undefined" && chosenConfig.length >= 7) {
+            clearInterval(t);
+            if (typeof window.loadConfig === "function") window.loadConfig();
+            refreshOccupancy();
+          }
+          if (n > 80) clearInterval(t);
+        }, 40);
+      });
+    }
+    if (saveBtn && typeof window.prepareSaveConfig === "function") {
+      saveBtn.addEventListener("click", function () {
+        window.prepareSaveConfig();
+        var a = el("saveConfig");
+        if (a && a.href) {
+          a.click();
+          a.style.display = "none";
+        }
+      });
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+
+</script>
 </body>

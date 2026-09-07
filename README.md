@@ -8,7 +8,13 @@ Official source: [fh2_config_tool.html](https://expert-sleepers.co.uk/webapps/fh
 
 Open **`fh2_config_tool.html`** in Chrome or Opera. Web MIDI and SysEx are required.
 
-If the browser blocks SysEx from a hosted page, open the file locally.
+That file is self-contained (studio CSS, JS, and logo are inlined). If the browser blocks SysEx from a hosted page, open it locally.
+
+Edit the split source files (`fh2-studio.css`, `fh2-studio.js`, `assets/`) then rebuild:
+
+```
+python3 build_studio.py
+```
 
 ## What this adds
 
@@ -30,12 +36,13 @@ Use the Theme menu for Light, Dark, **v1**, or **v2**.
 
 | File | Role |
 | --- | --- |
-| `fh2_config_tool.html` | Studio UI (open this) |
-| `fh2-studio.css` / `fh2-studio.js` | Studio chrome only |
-| `assets/expert-sleepers-logo.svg` | Expert Sleepers wordmark |
+| `fh2_config_tool.html` | Studio UI (self-contained; open this) |
+| `fh2-studio.css` / `fh2-studio.js` | Studio chrome source (inlined by the build) |
+| `assets/expert-sleepers-logo.svg` | Wordmark source (inlined by the build) |
 | `original/fh2_config_tool.html` | Official tool, plus Theme v1/v2 switch |
 | `vendor/fh2_config_tool_official.html` | Unmodified official HTML |
-| `dist/fh2-configuration-tool-studio/` | Packaged copy for sharing |
+| `build_studio.py` | Wraps the official HTML and inlines studio assets |
+| `dist/fh2-configuration-tool-studio/` | Packaged drop: studio HTML + original v1 |
 | `fh2-configuration-tool-studio.zip` | Same package as a zip |
 
 ## Manual

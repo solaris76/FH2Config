@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import base64
+import shutil
+import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -242,6 +245,50 @@ def replace_between(src: str, start: str, end: str, new: str) -> str:
     return src[:i] + new + src[j:]
 
 
+def logo_data_uri() -> str:
+    raw = (ROOT / "assets" / "expert-sleepers-logo.svg").read_bytes()
+    return "data:image/svg+xml;base64," + base64.b64encode(raw).decode("ascii")
+
+
+def inline_studio(html: str) -> str:
+    css = (ROOT / "fh2-studio.css").read_text(encoding="utf-8")
+    js = (ROOT / "fh2-studio.js").read_text(encoding="utf-8").replace("</script>", "<\\/script>")
+    html = html.replace(
+        '<link rel="stylesheet" href="fh2-studio.css">',
+        "<style>\n" + css + "\n</style>",
+        1,
+    )
+    html = html.replace(
+        '<script src="fh2-studio.js"></script>',
+        "<script>\n" + js + "\n</script>",
+        1,
+    )
+    html = html.replace("assets/expert-sleepers-logo.svg", logo_data_uri())
+    return html
+
+
+def write_dist(out: Path, orig_path: Path) -> None:
+    dist = ROOT / "dist" / "fh2-configuration-tool-studio"
+    if dist.exists():
+        shutil.rmtree(dist)
+    dist.mkdir(parents=True)
+    shutil.copy2(out, dist / "fh2_config_tool.html")
+    (dist / "original").mkdir()
+    shutil.copy2(orig_path, dist / "original" / "fh2_config_tool.html")
+    shutil.copy2(ROOT / "PACKAGING.txt", dist / "README.txt")
+
+    zip_path = ROOT / "fh2-configuration-tool-studio.zip"
+    if zip_path.exists():
+        zip_path.unlink()
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        for path in dist.rglob("*"):
+            if path.name == ".DS_Store" or not path.is_file():
+                continue
+            zf.write(path, path.relative_to(dist.parent))
+    print(f"Wrote {dist}")
+    print(f"Wrote {zip_path}")
+
+
 def main() -> None:
     if not SRC.exists() and not VENDOR.exists():
         raise SystemExit("Official HTML not found")
@@ -302,6 +349,7 @@ if ( localStorage.getItem( themeKey ) == 0 || localStorage.getItem( themeKey ) =
     )
 
     html = html.replace("</body>", '<script src="fh2-studio.js"></script>\n</body>', 1)
+    html = inline_studio(html)
 
     OUT.write_text(html, encoding="utf-8")
     print(f"Wrote {OUT} ({OUT.stat().st_size} bytes)")
@@ -317,6 +365,7 @@ if ( localStorage.getItem( themeKey ) == 0 || localStorage.getItem( themeKey ) =
     orig_path = orig_dir / "fh2_config_tool.html"
     orig_path.write_text(orig, encoding="utf-8")
     print(f"Wrote {orig_path}")
+    write_dist(OUT, orig_path)
 
 
 if __name__ == "__main__":
