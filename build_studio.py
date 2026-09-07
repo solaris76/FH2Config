@@ -4,8 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 SRC = Path("/tmp/fh2_official.html")
 VENDOR = ROOT / "vendor" / "fh2_config_tool_official.html"
-OUT = ROOT / "FH-2 Configuration Tool.html"
-INDEX = ROOT / "index.html"
+OUT = ROOT / "fh2_config_tool.html"
 
 CHROME = r'''<body>
 <div class="app">
@@ -205,7 +204,7 @@ ORIGINAL_UI_SWITCH = '''
 		if ( !sel ) return;
 		var v = sel.value;
 		if ( v === "v2" ) {
-			window.location.href = "../index.html";
+			window.location.href = "../fh2_config_tool.html";
 			return;
 		}
 		if ( v === "v1" ) {
@@ -305,9 +304,7 @@ if ( localStorage.getItem( themeKey ) == 0 || localStorage.getItem( themeKey ) =
     html = html.replace("</body>", '<script src="fh2-studio.js"></script>\n</body>', 1)
 
     OUT.write_text(html, encoding="utf-8")
-    INDEX.write_text(html, encoding="utf-8")
     print(f"Wrote {OUT} ({OUT.stat().st_size} bytes)")
-    print(f"Wrote {INDEX}")
 
     orig = raw.replace(
         '<select id="theme" onchange="changeTheme()"><option value=0>Light</option><option value=1>Dark</option></select>',

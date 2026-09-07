@@ -5,7 +5,7 @@ This is a usability shell around the official Expert Sleepers FH-2 Web MIDI
 configuration tool. All original control IDs and SysEx send/receive paths are
 unchanged.
 
-Open index.html in Chrome or Opera (Web MIDI + SysEx required). If the browser
+Open fh2_config_tool.html in Chrome or Opera (Web MIDI + SysEx required). If the browser
 blocks SysEx from a hosted page, open the file locally.
 
 What this adds
@@ -24,7 +24,7 @@ Theme menu → v1 or v2
 
 Files
 -----
-index.html                         New studio UI (open this)
+fh2_config_tool.html               New studio UI (open this)
 fh2-studio.css / fh2-studio.js     Studio chrome only
 assets/expert-sleepers-logo.svg    Expert Sleepers wordmark
 original/fh2_config_tool.html      Official tool, plus Theme v1/v2 switch
