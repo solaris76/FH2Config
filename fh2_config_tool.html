@@ -4806,7 +4806,7 @@ if ( navigator.requestMIDIAccess ) {
           }));
         }
       }
-      var after = base + voices * step;
+      var after = base + (voices - 1) * step + per.length;
       if (isChecked("mcv_G_" + m)) addOut(map, after++, source("gate", "Para gate " + m, midi, { key: meta.key, rowId: meta.rowId, section: "mcv", base: base, role: "Para gate" }));
       if (isChecked("mcv_A_" + m)) addOut(map, after++, source("cv", "Para AT " + m, midi, { key: meta.key, rowId: meta.rowId, section: "mcv", base: base, role: "Para AT" }));
       var pb = num("mcv_PB_" + m);
